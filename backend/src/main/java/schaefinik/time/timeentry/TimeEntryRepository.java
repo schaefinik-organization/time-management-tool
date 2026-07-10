@@ -8,4 +8,6 @@ import java.util.List;
 public interface TimeEntryRepository extends JpaRepository<TimeEntry, Long> {
 
     List<TimeEntry> findByEntryDateOrderByStartTimeAsc(LocalDate entryDate);
+
+    List<TimeEntry> findByEntryDate(LocalDate entryDate);
 }

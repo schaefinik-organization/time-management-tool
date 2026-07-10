@@ -30,6 +30,7 @@ public class TimeEntryService {
         validateTimeRange(request);
 
         Project project = findProject(request.projectId());
+        checkForOverlap(request, null);
 
         TimeEntry entry = new TimeEntry();
         entry.setProject(project);
@@ -49,6 +50,7 @@ public class TimeEntryService {
                 .orElseThrow(() -> new IllegalArgumentException("TimeEntry nicht gefunden: " + id));
 
         Project project = findProject(request.projectId());
+        checkForOverlap(request, id);
 
         entry.setProject(project);
         entry.setEntryDate(request.entryDate());
@@ -79,6 +81,20 @@ public class TimeEntryService {
 
         if (!request.endTime().isAfter(request.startTime())) {
             throw new IllegalArgumentException("Endzeit muss nach der Startzeit liegen");
+        }
+    }
+
+    private void checkForOverlap(CreateTimeEntryRequest request, Long currentEntryId) {
+        List<TimeEntry> entriesForDay = timeEntryRepository.findByEntryDate(request.entryDate());
+
+        boolean overlaps = entriesForDay.stream()
+                .filter(existing -> currentEntryId == null || !existing.getId().equals(currentEntryId))
+                .anyMatch(existing -> request.startTime().isBefore(existing.getEndTime()) &&
+                        request.endTime().isAfter(existing.getStartTime()));
+
+        if (overlaps) {
+            throw new TimeEntryOverlapException(
+                    "Der Zeiteintrag überschneidet sich mit einem bestehenden Eintrag am selben Tag");
         }
     }
 

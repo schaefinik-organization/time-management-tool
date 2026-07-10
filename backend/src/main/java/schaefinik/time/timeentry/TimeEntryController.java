@@ -25,4 +25,15 @@ public class TimeEntryController {
     public TimeEntryResponse create(@Valid @RequestBody CreateTimeEntryRequest request) {
         return timeEntryService.create(request);
     }
+
+    @PutMapping("/{id}")
+    public TimeEntryResponse update(@PathVariable Long id, @Valid @RequestBody CreateTimeEntryRequest request) {
+        return timeEntryService.update(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        timeEntryService.delete(id);
+    }
+
 }

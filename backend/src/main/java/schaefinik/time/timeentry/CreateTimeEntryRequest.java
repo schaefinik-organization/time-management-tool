@@ -7,13 +7,13 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record CreateTimeEntryRequest(
-                @NotNull(message = "Projekt-ID ist erforderlich") Long projectId,
+        @NotNull(message = "Projekt-ID ist erforderlich") Long projectId,
 
-                @NotNull(message = "Datum ist erforderlich") LocalDate entryDate,
+        @NotNull(message = "Datum ist erforderlich") LocalDate entryDate,
 
-                @NotNull(message = "Startzeit ist erforderlich") LocalTime startTime,
+        @NotNull(message = "Startzeit ist erforderlich") LocalTime startTime,
 
-                @NotNull(message = "Endzeit ist erforderlich") LocalTime endTime,
+        @NotNull(message = "Endzeit ist erforderlich") LocalTime endTime,
 
-                @Size(max = 500, message = "Notiz darf maximal 500 Zeichen lang sein") String note) {
+        @Size(max = 500, message = "Notiz darf maximal 500 Zeichen lang sein") String note) {
 }
