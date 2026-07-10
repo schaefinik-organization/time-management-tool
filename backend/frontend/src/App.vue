@@ -1,22 +1,9 @@
 <template>
-  <div class="app-shell">
-    <header class="app-header">
-      <div>
-        <h1>Time Management Tool</h1>
-        <p>Projektzeiten erfassen und pro Tag anzeigen</p>
-      </div>
-
-      <nav class="nav-links">
-        <RouterLink to="/">Dashboard</RouterLink>
-        <RouterLink to="/projects">Projekte</RouterLink>
-      </nav>
-    </header>
-
-    <main class="app-main">
-      <RouterView />
-    </main>
-  </div>
+  <AppShell>
+    <RouterView />
+  </AppShell>
 </template>
 
 <script setup>
+import AppShell from './components/layout/AppShell.vue'
 </script>

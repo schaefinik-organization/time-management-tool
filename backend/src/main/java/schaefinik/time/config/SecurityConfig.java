@@ -15,11 +15,17 @@ public class SecurityConfig {
                                 .csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(
-                                                                "/", "/index.html", "/Hello.html",
-                                                                "/assets/**", "/favicon.ico",
-                                                                "/api/**")
+                                                                "/",
+                                                                "/index.html",
+                                                                "/Hello.html",
+                                                                "/projects",
+                                                                "/time-entries",
+                                                                "/login",
+                                                                "/favicon.ico",
+                                                                "/assets/**",
+                                                                "/api/**",
+                                                                "/error")
                                                 .permitAll()
-
                                                 .anyRequest().authenticated())
                                 .httpBasic(Customizer.withDefaults())
                                 .build();
