@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+:root {
+  --bg: #f8fafc;
+  --bg-muted: #f1f5f9;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #475569;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --danger: #dc2626;
+  --success: #16a34a;
+}
+
+[data-theme="dark"] {
+  --bg: #020617;
+  --bg-muted: #0f172a;
+  --surface: #111827;
+  --surface-soft: #1e293b;
+  --border: #334155;
+  --text: #f8fafc;
+  --text-muted: #cbd5e1;
+  --primary: #60a5fa;
+  --primary-hover: #3b82f6;
+  --danger: #f87171;
+  --success: #4ade80;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+@layer components {
+  .app-container {
+    @apply min-h-screen flex flex-col;
+  }
+
+  .page-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .page-section {
+    @apply py-6 sm:py-8;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    @apply rounded-2xl shadow-sm;
+  }
+
+  .input-base {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    @apply w-full rounded-xl px-3 py-2.5 outline-none transition;
+  }
+
+  .input-base:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.15);
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium transition;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-hover);
+  }
+
+  .btn-secondary {
+    background: var(--surface-soft);
+    color: var(--text);
+    border: 1px solid var(--border);
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium transition;
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium transition;
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+}
+
+@layer components {
+  .nav-link {
+    color: var(--text);
+    border: 1px solid transparent;
+    @apply inline-flex items-center rounded-xl px-3 py-2 text-sm font-medium no-underline transition;
+  }
+
+  .nav-link:hover {
+    background: var(--surface-soft);
+  }
+
+  .nav-link-active,
+  .nav-link-exact {
+    background: var(--bg-muted);
+    border-color: var(--border);
+    color: var(--primary);
+  }
+}
