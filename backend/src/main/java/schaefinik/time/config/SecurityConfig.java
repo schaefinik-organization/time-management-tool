@@ -1,8 +1,8 @@
 package schaefinik.time.config;
 
 import lombok.RequiredArgsConstructor;
-import schaefinik.time.security.JwtAuthenticationFilter;
-import schaefinik.time.security.CustomUserDetailsService;
+import schaefinik.time.security.filter.JwtAuthenticationFilter;
+import schaefinik.time.security.service.CustomUserDetailsService;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
