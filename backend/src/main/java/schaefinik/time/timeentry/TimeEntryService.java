@@ -1,23 +1,27 @@
 package schaefinik.time.timeentry;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 import schaefinik.time.project.Project;
 import schaefinik.time.project.ProjectRepository;
+import schaefinik.time.security.SecurityUtil;
+import schaefinik.time.security.TimeUserPrincipal;
+import schaefinik.time.user.TimeUser;
+import schaefinik.time.user.TimeUserRepository;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class TimeEntryService {
 
     private final TimeEntryRepository timeEntryRepository;
     private final ProjectRepository projectRepository;
-
-    public TimeEntryService(TimeEntryRepository timeEntryRepository,
-            ProjectRepository projectRepository) {
-        this.timeEntryRepository = timeEntryRepository;
-        this.projectRepository = projectRepository;
-    }
+    private final TimeUserRepository userRepository;
 
     public List<TimeEntryResponse> findByDate(LocalDate date) {
         return timeEntryRepository.findByEntryDateOrderByStartTimeAsc(date)
@@ -28,18 +32,29 @@ public class TimeEntryService {
 
     public TimeEntryResponse create(CreateTimeEntryRequest request) {
         validateTimeRange(request);
-
-        Project project = findProject(request.projectId());
         checkForOverlap(request, null);
 
-        TimeEntry entry = new TimeEntry();
-        entry.setProject(project);
-        entry.setEntryDate(request.entryDate());
-        entry.setStartTime(request.startTime());
-        entry.setEndTime(request.endTime());
-        entry.setNote(request.note());
+        TimeUserPrincipal principal = SecurityUtil.currentUser();
+        TimeUser user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Project project = findProject(request.projectId());
+
+        if (!request.endTime().isAfter(request.startTime())) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
+
+        TimeEntry entry = TimeEntry.builder()
+                .user(user)
+                .project(project)
+                .entryDate(request.entryDate())
+                .startTime(request.startTime())
+                .endTime(request.endTime())
+                .note(request.note())
+                .build();
 
         TimeEntry saved = timeEntryRepository.save(entry);
+
         return mapToResponse(saved);
     }
 

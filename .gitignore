@@ -1,1 +1,11 @@
+.vscode
 backend/.DS_Store
+backend/.gradle
+backend/app
+backend/bin
+backend/build
+# Das Frontend des Projektes, nicht in .gitignore einfügen
+#backend/frontend
+backend/frontend/.vscode
+backend/frontend/dist
+backend/frontend/node_modules

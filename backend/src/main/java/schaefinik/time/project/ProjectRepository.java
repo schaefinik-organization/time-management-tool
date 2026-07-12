@@ -9,4 +9,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findAllByOrderByNameAsc();
 
     List<Project> findByActiveTrueOrderByNameAsc();
+
+    boolean existsByName(String name);
 }

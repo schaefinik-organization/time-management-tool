@@ -1,17 +1,18 @@
 package schaefinik.time.project;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
-
-    public ProjectService(ProjectRepository projectRepository) {
-        this.projectRepository = projectRepository;
-    }
 
     public List<ProjectResponse> findAll() {
         return projectRepository.findAll()
@@ -21,9 +22,15 @@ public class ProjectService {
     }
 
     public ProjectResponse create(CreateProjectRequest request) {
-        Project project = new Project();
-        project.setName(request.name());
-        project.setDescription(request.description());
+        if (projectRepository.existsByName(request.name())) {
+            throw new IllegalArgumentException("Project name already exists");
+        }
+
+        Project project = Project.builder()
+                .name(request.name())
+                .description(request.description())
+                .active(true)
+                .build();
 
         Project saved = projectRepository.save(project);
         return mapToResponse(saved);
