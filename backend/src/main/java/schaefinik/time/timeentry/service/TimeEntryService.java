@@ -10,8 +10,9 @@ import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.security.util.SecurityUtil;
 import schaefinik.time.timeentry.exception.TimeEntryOverlapException;
 import schaefinik.time.timeentry.model.TimeEntry;
+import schaefinik.time.timeentry.properties.TimeEntryProperties;
 import schaefinik.time.timeentry.repository.TimeEntryRepository;
-import schaefinik.time.timeentry.requestData.CreateTimeEntryRequest;
+import schaefinik.time.timeentry.requestData.TimeEntryRequest;
 import schaefinik.time.timeentry.responseData.TimeEntryResponse;
 import schaefinik.time.user.model.TimeUser;
 import schaefinik.time.user.repository.TimeUserRepository;
@@ -35,18 +36,16 @@ public class TimeEntryService {
                 .toList();
     }
 
-    public TimeEntryResponse create(CreateTimeEntryRequest request) {
+    public TimeEntryResponse create(TimeEntryRequest request) {
         validateTimeRange(request);
         checkForOverlap(request, null);
 
         TimeUserPrincipal principal = SecurityUtil.currentUser();
-        TimeUser user = userRepository.findById(principal.getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
+        TimeUser user = findUser(principal.getId());
         Project project = findProject(request.projectId());
 
         if (!request.endTime().isAfter(request.startTime())) {
-            throw new IllegalArgumentException("End time must be after start time");
+            throw new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_END_TIME_BEFORE_START_TIME);
         }
 
         TimeEntry entry = TimeEntry.builder()
@@ -63,12 +62,10 @@ public class TimeEntryService {
         return mapToResponse(saved);
     }
 
-    public TimeEntryResponse update(Long id, CreateTimeEntryRequest request) {
+    public TimeEntryResponse update(Long id, TimeEntryRequest request) {
         validateTimeRange(request);
 
-        TimeEntry entry = timeEntryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("TimeEntry nicht gefunden: " + id));
-
+        TimeEntry entry = findTimeEntry(id);
         Project project = findProject(request.projectId());
         checkForOverlap(request, id);
 
@@ -84,27 +81,38 @@ public class TimeEntryService {
 
     public void delete(Long id) {
         TimeEntry entry = timeEntryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("TimeEntry nicht gefunden: " + id));
+                .orElseThrow(() -> new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_NOT_FOUND + id));
 
         timeEntryRepository.delete(entry);
     }
 
-    private Project findProject(Long projectId) {
-        return projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Projekt nicht gefunden: " + projectId));
+    private TimeEntry findTimeEntry(Long id) {
+        return timeEntryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_NOT_FOUND + id));
     }
 
-    private void validateTimeRange(CreateTimeEntryRequest request) {
-        if (request.startTime() == null || request.endTime() == null) {
-            throw new IllegalArgumentException("Start- und Endzeit müssen gesetzt sein");
+    private TimeUser findUser(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_USER_NOT_FOUND + id));
+    }
+
+    private Project findProject(Long projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        TimeEntryProperties.TIME_ENTRY_PROJECT_NOT_FOUND + projectId));
+    }
+
+    private void validateTimeRange(TimeEntryRequest request) {
+        if (request.startTime() == null) {
+            throw new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_START_TIME_NULL);
         }
 
         if (!request.endTime().isAfter(request.startTime())) {
-            throw new IllegalArgumentException("Endzeit muss nach der Startzeit liegen");
+            throw new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_END_TIME_BEFORE_START_TIME);
         }
     }
 
-    private void checkForOverlap(CreateTimeEntryRequest request, Long currentEntryId) {
+    private void checkForOverlap(TimeEntryRequest request, Long currentEntryId) {
         List<TimeEntry> entriesForDay = timeEntryRepository.findByEntryDate(request.entryDate());
 
         boolean overlaps = entriesForDay.stream()
@@ -114,7 +122,7 @@ public class TimeEntryService {
 
         if (overlaps) {
             throw new TimeEntryOverlapException(
-                    "Der Zeiteintrag überschneidet sich mit einem bestehenden Eintrag am selben Tag");
+                    TimeEntryProperties.TIME_ENTRY_OVERLAP);
         }
     }
 

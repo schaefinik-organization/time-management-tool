@@ -1,7 +1,7 @@
 package schaefinik.time.timeentry.controller;
 
 import jakarta.validation.Valid;
-import schaefinik.time.timeentry.requestData.CreateTimeEntryRequest;
+import schaefinik.time.timeentry.requestData.TimeEntryRequest;
 import schaefinik.time.timeentry.responseData.TimeEntryResponse;
 import schaefinik.time.timeentry.service.TimeEntryService;
 
@@ -26,12 +26,12 @@ public class TimeEntryController {
     }
 
     @PostMapping
-    public TimeEntryResponse create(@Valid @RequestBody CreateTimeEntryRequest request) {
+    public TimeEntryResponse create(@Valid @RequestBody TimeEntryRequest request) {
         return timeEntryService.create(request);
     }
 
     @PutMapping("/{id}")
-    public TimeEntryResponse update(@PathVariable Long id, @Valid @RequestBody CreateTimeEntryRequest request) {
+    public TimeEntryResponse update(@PathVariable Long id, @Valid @RequestBody TimeEntryRequest request) {
         return timeEntryService.update(id, request);
     }
 
