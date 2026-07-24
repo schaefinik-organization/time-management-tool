@@ -64,4 +64,9 @@ public class ProjectService {
                 project.getName(),
                 project.getDescription());
     }
+
+    public Object findById(Long id) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException("Unimplemented method 'findById'");
+    }
 }

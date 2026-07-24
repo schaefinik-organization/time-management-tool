@@ -98,4 +98,14 @@ public class AuthService {
 
     return new CurrentUserResponse(principal.getId(), principal.getUsername(), role);
   }
+
+  public void deleteUser(Long id) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'deleteUser'");
+  }
+
+  public Object findAllUsers() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findAllUsers'");
+  }
 }

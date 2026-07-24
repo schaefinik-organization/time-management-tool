@@ -1,61 +1,5 @@
-<script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { createProject, deleteProject, fetchProjects, updateProject } from '../api/projects'
-import { useFormHandler } from '../composables/useFormHandler'
-import AppError from '../components/ui/AppError.vue'
-import BaseButton from '../components/ui/BaseButton.vue'
-import BaseCard from '../components/ui/BaseCard.vue'
-import BaseInput from '../components/ui/BaseInput.vue'
-import BaseTextarea from '../components/ui/BaseTextarea.vue'
-
-const projects = ref([])
-const editingId = ref(null)
-const isEditMode = computed(() => editingId.value !== null)
-
-// Unser neues Composable nutzen
-const { loading, errorMessage, validationErrors, handleAction } = useFormHandler()
-
-const form = reactive({ name: '', description: '' })
-
-async function loadProjects() {
-  const response = await fetchProjects()
-  projects.value = response.data
-}
-
-function resetForm() {
-  editingId.value = null
-  form.name = ''
-  form.description = ''
-}
-
-async function submitProject() {
-  const action = isEditMode.value 
-    ? () => updateProject(editingId.value, { ...form })
-    : () => createProject({ ...form })
-
-  await handleAction(action, () => {
-    resetForm()
-    loadProjects()
-  })
-}
-
-async function removeProject(id) {
-  if (!window.confirm('Projekt wirklich löschen?')) return
-  await handleAction(() => deleteProject(id), loadProjects)
-}
-
-function editProject(project) {
-  editingId.value = project.id
-  form.name = project.name
-  form.description = project.description || ''
-}
-
-onMounted(loadProjects)
-</script>
-
 <template>
-  <!-- ... dein UI ... -->
-   <section class="space-y-6">
+  <section class="space-y-6">
     <div class="flex flex-col gap-2">
       <h1 class="text-2xl font-semibold">Projekte</h1>
       <p class="text-muted">Projekte anlegen, bearbeiten und löschen.</p>
@@ -175,12 +119,91 @@ onMounted(loadProjects)
       </BaseCard>
     </div>
   </section>
-  <form @submit.prevent="submitProject">
-     <!-- Beispiel für Feld-spezifischen Fehler -->
-     <BaseInput v-model="form.name" :class="{'border-red-500': validationErrors.name}" />
-     <p v-if="validationErrors.name" class="text-xs text-red-500">{{ validationErrors.name }}</p>
-
-     <AppError :message="errorMessage" :errors="validationErrors" />
-     <BaseButton :disabled="loading">Speichern</BaseButton>
-  </form>
 </template>
+
+<script setup>
+import { computed, onMounted, reactive, ref } from 'vue'
+import { createProject, deleteProject, fetchProjects, updateProject } from '../api/projects'
+import BaseButton from '../components/ui/BaseButton.vue'
+import BaseCard from '../components/ui/BaseCard.vue'
+import BaseInput from '../components/ui/BaseInput.vue'
+import BaseTextarea from '../components/ui/BaseTextarea.vue'
+
+const projects = ref([])
+const loading = ref(false)
+const errorMessage = ref('')
+const editingId = ref(null)
+
+const form = reactive({
+  name: '',
+  description: ''
+})
+
+const isEditMode = computed(() => editingId.value !== null)
+
+async function loadProjects() {
+  const response = await fetchProjects()
+  projects.value = response.data
+}
+
+function editProject(project) {
+  editingId.value = project.id
+  form.name = project.name
+  form.description = project.description || ''
+}
+
+function resetForm() {
+  editingId.value = null
+  form.name = ''
+  form.description = ''
+  errorMessage.value = ''
+}
+
+async function submitProject() {
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const payload = {
+      name: form.name,
+      description: form.description
+    }
+
+    if (isEditMode.value) {
+      await updateProject(editingId.value, payload)
+    } else {
+      await createProject(payload)
+    }
+
+    resetForm()
+    await loadProjects()
+  } catch (error) {
+    errorMessage.value =
+      error?.response?.data?.message ||
+      'Projekt konnte nicht gespeichert werden.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function removeProject(id) {
+  const confirmed = window.confirm('Projekt wirklich löschen?')
+  if (!confirmed) return
+
+  try {
+    await deleteProject(id)
+    if (editingId.value === id) {
+      resetForm()
+    }
+    await loadProjects()
+  } catch (error) {
+    errorMessage.value =
+      error?.response?.data?.message ||
+      'Projekt konnte nicht gelöscht werden.'
+  }
+}
+
+onMounted(async () => {
+  await loadProjects()
+})
+</script>

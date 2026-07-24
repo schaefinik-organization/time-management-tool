@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import HomeView from '../views/HomeView.vue'
 import ProjectsView from '../views/ProjectsView.vue'
 import DashboardView from '../views/DashboardView.vue'
@@ -35,18 +36,20 @@ const router = createRouter({
   linkActiveClass: 'nav-link-active',
   linkExactActiveClass: 'nav-link-exact'
 })
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+  
+  // Wenn wir ein Token haben, aber noch keinen User, User-Daten nachladen
+  if (authStore.token && !authStore.user) {
+    await authStore.fetchCurrentUser()
+  }
 
-router.beforeEach((to) => {
-  const isAuthenticated = true
-
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return {
       name: 'login',
       query: { redirect: to.fullPath }
     }
   }
-
-  return true
 })
 
 export default router
