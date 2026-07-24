@@ -1,71 +1,159 @@
-# time-management-tool
+# ⏱️ Time Management Tool [ALPHA]
 
-Ein Fullstack-Lern- und Praxisprojekt zur Zeiterfassung mit Java Spring Boot und Vue.js.
+[![Project Status: Alpha](https://img.shields.io/badge/Status-Alpha-orange.svg)](#)
+[![Java](https://img.shields.io/badge/Backend-Java%2017%2B-blue)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Framework-Spring%20Boot-brightgreen)](https://spring.io/projects/spring-boot)
+[![Vue.js](https://img.shields.io/badge/Frontend-Vue.js%203-4fc08d)](https://vuejs.org/)
 
-## Überblick
+Ein Fullstack-Praxisprojekt zur Zeiterfassung. Mit diesem Tool können Nutzer Projekte verwalten und Arbeitszeiten präzise dokumentieren. Entwickelt als Lern- und Referenzprojekt für moderne Web-Architekturen.
 
-`time-management-tool` ist eine Webanwendung, mit der sich Nutzer anmelden, Projekte anlegen und Zeiten auf Projekte buchen können. Ziel des Projekts ist es, eine saubere und nachvollziehbare Fullstack-Anwendung aufzubauen, in der typische Anforderungen wie Authentifizierung, Projektverwaltung und Zeitbuchungen praktisch umgesetzt werden.
+---
 
-Das Projekt befindet sich aktuell in einer frühen Entwicklungsphase und deckt bereits die grundlegenden Kernfunktionen ab. Es wird laufend erweitert, verbessert und schrittweise technisch ausgebaut.
+## 📑 Inhaltsverzeichnis
+- [Überblick & Features](#-überblick--features)
+- [Architektur](#-architektur)
+- [Tech-Stack](#-tech-stack)
+- [Quick Start (Setup)](#-quick-start-setup)
+- [Konfiguration](#-konfiguration)
+- [API Dokumentation](#-api-dokumentation)
+- [Benutzerhandbuch](#-benutzerhandbuch)
+- [Fehlerbehebung (Troubleshooting)](#-fehlerbehebung)
+- [Contributing](#-contributing)
 
-## Ziel des Projekts
+---
 
-Dieses Projekt dient dazu, gelernte Inhalte aus Backend- und Frontend-Entwicklung praktisch umzusetzen. Gleichzeitig wird es genutzt, um unterschiedliche Software-Patterns, Architekturen und Entwicklungsansätze in einer realistischen Webanwendung zu testen und nachvollziehbar weiterzuentwickeln.
+## 🚀 Überblick & Features
 
-## Aktueller Funktionsumfang
+### Kernfunktionen (Aktueller Stand)
+- **Authentifizierung:** Sicherer Login-Bereich für Benutzer.
+- **Projektverwaltung:** Erstellen und Verwalten von Kundenprojekten.
+- **Zeiterfassung:** Buchung von Zeitintervallen (z.B. 09:00 - 17:00 Uhr) auf spezifische Projekte.
+- **Dashboard:** Erste Übersicht über erfasste Zeiten.
 
-- Benutzeranmeldung und grundlegende Authentifizierung
-- Verwaltung von Projekten
-- Erfassung von Zeitbuchungen auf Projekte
-- Beispielhafte Buchung von Zeiten, z. B. von 12:00 bis 14:00 Uhr
-- Grundstruktur für Backend und Frontend
-- Nachvollziehbare und strukturiert benannte Commits
+### Geplante Features
+- [ ] Rollenbasierte Zugriffskontrolle (Admin vs. User)
+- [ ] Export-Funktion (PDF/CSV)
+- [ ] Visualisierung der Arbeitszeiten (Charts)
+- [ ] Containerisierung mit Docker
 
-## Tech-Stack
+---
 
-### Backend
-- Java
-- Spring Boot
-- Spring Security
-- Gradle
+## 🏗 Architektur
 
-### Frontend
-- Vue.js
-- Vite
+Das Projekt folgt einer klassischen **Decoupled Architecture**:
+- **Backend:** RESTful API mit Spring Boot.
+- **Frontend:** Single Page Application (SPA) mit Vue.js & Vite.
+- **Kommunikation:** JSON via HTTP, abgesichert durch Spring Security (JWT/Session-basiert).
 
-## Projektstatus
+---
 
-Das Projekt ist aktiv in Entwicklung. Der aktuelle Stand konzentriert sich bewusst auf die Core-Funktionen einer Zeiterfassungsanwendung. Weitere Features, strukturelle Verbesserungen und technische Verfeinerungen sind geplant.
+## 🛠 Tech-Stack
 
-## Entwicklungsansatz
+| Komponente | Technologie |
+| :--- | :--- |
+| **Backend** | Java 17+, Spring Boot, Spring Security, Hibernate/JPA |
+| **Frontend** | Vue.js 3, Vite, Axios, Tailwind CSS (optional) |
+| **Build-Tools** | Gradle, NPM |
+| **Datenbank** | H2 (Entwicklung) / PostgreSQL (geplant) |
 
-Ein wichtiger Teil des Projekts ist die nachvollziehbare Entwicklung über klar strukturierte Commits. Änderungen werden schrittweise aufgebaut und thematisch benannt, damit die Weiterentwicklung transparent bleibt.
+---
 
-Beispiele aus dem Commit-Verlauf:
+## 💻 Quick Start (Setup)
 
-- `feature(TIME-01): refactor repo, added sample folder structure`
-- `feature(TIME-01): added backend user and authentication and security`
-- `feature(TIME-01): added initial frontend components and views`
-- `feature(TIME-01): added frontend to the project with vite and vue`
-- `feature(TIME-01): added project and timeEntry Controller, Services, Repositories`
+Folge diesen Schritten, um das Projekt in unter 15 Minuten lokal zu starten.
 
-Dadurch lässt sich die technische Entwicklung des Projekts gut nachvollziehen.
+### Voraussetzungen
+- Java JDK 17 oder höher
+- Node.js (v18+) & NPM
+- Git
 
-## Geplante Weiterentwicklung
-
-- Erweiterung der Benutzer- und Rollenlogik
-- Verbesserte Validierung und Fehlerbehandlung
-- Optimierung der UI und Nutzerführung
-- Erweiterung der Projekt- und Zeitverwaltungsfunktionen
-- Tests und technische Absicherung
-- Containerisierung und vereinfachtes lokales Setup
-
-## Lokale Ausführung
-
-Die genauen Startschritte können hier ergänzt werden, sobald das Setup vollständig dokumentiert ist.
-
-Beispielhafte Struktur:
-
-### Backend starten
+### 1. Repository klonen
 ```bash
+git clone https://github.com/schaefinik/time-management-tool.git
+cd time-management-tool
+```
+
+### 2. Backend starten
+```bash
+cd backend
 ./gradlew bootRun
+```
+*Das Backend ist standardmäßig unter `http://localhost:8080` erreichbar.*
+
+### 3. Frontend starten
+```bash
+cd frontend
+npm install
+npm run dev
+```
+*Das Frontend ist unter `http://localhost:5173` erreichbar.*
+
+---
+
+## 🔐 Test-Zugangsdaten (Default Credentials)
+
+Für Testzwecke sind initial folgende Benutzer angelegt (via `import.sql` oder Setup-Service):
+
+| Rolle | Benutzername | Passwort |
+| :--- | :--- | :--- |
+| **Admin** | `admin@example.com` | `admin123` |
+| **User** | `user@example.com` | `user123` |
+
+---
+
+## 📡 API Dokumentation
+
+Die API-Endpunkte können nach dem Start des Backends über **Swagger UI** eingesehen werden:
+👉 `http://localhost:8080/swagger-ui.html` (falls implementiert)
+
+**Wichtige Endpunkte:**
+- `POST /api/auth/login` - Authentifizierung
+- `GET /api/projects` - Liste aller Projekte
+- `POST /api/time-entries` - Neue Zeitbuchung erstellen
+
+---
+
+## 📘 Benutzerhandbuch
+
+1. **Login:** Melde dich mit den oben genannten Test-Daten an.
+2. **Projekt anlegen:** Navigiere zu "Projekte" und erstelle dein erstes Projekt (z.B. "Lernprojekt README").
+3. **Zeit buchen:** Wähle das Projekt aus, gib Start- und Endzeit ein und speichere die Buchung.
+4. **Auswertung:** In der Übersicht siehst du deine summierten Stunden.
+
+---
+
+## ⚙️ Konfiguration
+
+Die Anwendung kann über Umgebungsvariablen oder die `application.properties` angepasst werden:
+
+- `SERVER_PORT`: Standard `8080`
+- `SPRING_DATASOURCE_URL`: Datenbank-Verbindung
+- `VITE_API_BASE_URL`: Frontend-Konfiguration für die API-URL
+
+---
+
+## 🛠 Fehlerbehebung (Troubleshooting)
+
+- **Port bereits belegt:** Falls Port 8080 belegt ist, ändere ihn in der `application.properties`.
+- **CORS Fehler:** Stelle sicher, dass die Frontend-URL in den Backend-Security-Einstellungen erlaubt ist.
+- **Node Modules:** Bei Fehlern im Frontend hilft oft ein `rm -rf node_modules && npm install`.
+
+---
+
+## 🤝 Contributing
+
+Beiträge sind herzlich willkommen!
+1. Forke das Projekt.
+2. Erstelle einen Feature-Branch (`git checkout -b feature/AmazingFeature`).
+3. Beachte das Commit-Format: `feature(TIME-XX): beschreibung`.
+4. Erstelle einen Pull Request.
+
+---
+
+## 📄 Lizenz
+Dieses Projekt ist für Lernzwecke gedacht. (Füge hier ggf. MIT oder Apache 2.0 hinzu).
+
+---
+*Erstellt mit ❤️ von [schaefinik](https://github.com/schaefinik)*
+
+---
