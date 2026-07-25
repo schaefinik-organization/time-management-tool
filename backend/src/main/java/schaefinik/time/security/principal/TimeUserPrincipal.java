@@ -14,6 +14,7 @@ public class TimeUserPrincipal implements UserDetails {
 
     private final Long id;
     private final String username;
+    private final String email;
     private final String password;
     private final boolean enabled;
     private final List<SimpleGrantedAuthority> authorities;
@@ -21,6 +22,7 @@ public class TimeUserPrincipal implements UserDetails {
     public TimeUserPrincipal(TimeUser user) {
         this.id = user.getId();
         this.username = user.getUsername();
+        this.email = user.getEmail();
         this.password = user.getPasswordHash();
         this.enabled = user.isEnabled();
         this.authorities = List.of(new SimpleGrantedAuthority(user.getRole().name()));

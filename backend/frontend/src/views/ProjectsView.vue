@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { createProject, deleteProject, fetchProjects, updateProject } from '../api/projects'
+import { createProjectApi, deleteProjectApi, fetchProjectsApi, updateProjectApi } from '../api/projects'
 import { useFormHandler } from '../composables/useFormHandler'
 import AppError from '../components/ui/AppError.vue'
 import BaseButton from '../components/ui/BaseButton.vue'
@@ -18,7 +18,7 @@ const { loading, errorMessage, validationErrors, handleAction } = useFormHandler
 const form = reactive({ name: '', description: '' })
 
 async function loadProjects() {
-  const response = await fetchProjects()
+  const response = await fetchProjectsApi()
   projects.value = response.data
 }
 
@@ -30,8 +30,8 @@ function resetForm() {
 
 async function submitProject() {
   const action = isEditMode.value 
-    ? () => updateProject(editingId.value, { ...form })
-    : () => createProject({ ...form })
+    ? () => updateProjectApi(editingId.value, { ...form })
+    : () => createProjectApi({ ...form })
 
   await handleAction(action, () => {
     resetForm()
@@ -41,7 +41,7 @@ async function submitProject() {
 
 async function removeProject(id) {
   if (!window.confirm('Projekt wirklich löschen?')) return
-  await handleAction(() => deleteProject(id), loadProjects)
+  await handleAction(() => deleteProjectApi(id), loadProjects)
 }
 
 function editProject(project) {
@@ -175,12 +175,4 @@ onMounted(loadProjects)
       </BaseCard>
     </div>
   </section>
-  <form @submit.prevent="submitProject">
-     <!-- Beispiel für Feld-spezifischen Fehler -->
-     <BaseInput v-model="form.name" :class="{'border-red-500': validationErrors.name}" />
-     <p v-if="validationErrors.name" class="text-xs text-red-500">{{ validationErrors.name }}</p>
-
-     <AppError :message="errorMessage" :errors="validationErrors" />
-     <BaseButton :disabled="loading">Speichern</BaseButton>
-  </form>
 </template>

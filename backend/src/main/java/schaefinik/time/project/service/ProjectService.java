@@ -66,7 +66,9 @@ public class ProjectService {
     }
 
     public Object findById(Long id) {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'findById'");
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Projekt nicht gefunden: " + id));
+
+        return mapToResponse(project);
     }
 }

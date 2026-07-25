@@ -159,14 +159,14 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useAppStore } from '../stores/app'
-import { fetchProjects } from '../api/projects'
+import { useAppStore } from '../stores/app.js'
+import { fetchProjectsApi } from '../api/projects.js'
 import {
-  createTimeEntry,
-  deleteTimeEntry,
-  fetchTimeEntriesByDate,
-  updateTimeEntry
-} from '../api/timeEntries'
+  createTimeEntryApi,
+  deleteTimeEntryApi,
+  fetchTimeEntriesByDateApi,
+  updateTimeEntryApi
+} from '../api/timeEntries.js'
 import BaseButton from '../components/ui/BaseButton.vue'
 import BaseCard from '../components/ui/BaseCard.vue'
 import BaseInput from '../components/ui/BaseInput.vue'
@@ -199,14 +199,14 @@ const form = reactive({
 const isEditMode = computed(() => editingId.value !== null)
 
 async function loadProjects() {
-  const response = await fetchProjects()
+  const response = await fetchProjectsApi()
   projects.value = response.data
 }
 
 async function loadTimeEntries() {
   entriesLoading.value = true
   try {
-    const response = await fetchTimeEntriesByDate(selectedDate.value)
+    const response = await fetchTimeEntriesByDateApi(selectedDate.value)
     timeEntries.value = response.data
   } finally {
     entriesLoading.value = false
@@ -244,9 +244,9 @@ async function submitTimeEntry() {
     }
 
     if (isEditMode.value) {
-      await updateTimeEntry(editingId.value, payload)
+      await updateTimeEntryApi(editingId.value, payload)
     } else {
-      await createTimeEntry(payload)
+      await createTimeEntryApi(payload)
     }
 
     resetForm()
@@ -265,7 +265,7 @@ async function removeTimeEntry(id) {
   if (!confirmed) return
 
   try {
-    await deleteTimeEntry(id)
+    await deleteTimeEntryApi(id)
     if (editingId.value === id) {
       resetForm()
     }

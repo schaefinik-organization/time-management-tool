@@ -1,19 +1,19 @@
-import apiClient from './client'
+import api from '@/api/axios'
 
-export function fetchTimeEntriesByDate(date) {
-  return apiClient.get('/time-entries', {
+export function fetchTimeEntriesByDateApi(date) {
+  return api.get('/time-entries', {
     params: { date }
   })
 }
 
-export function createTimeEntry(payload) {
-  return apiClient.post('/time-entries', payload)
+export function createTimeEntryApi(payload) {
+  return api.post('/time-entries', payload)
 }
 
-export function updateTimeEntry(id, payload) {
-  return apiClient.put(`/time-entries/${id}`, payload)
+export function updateTimeEntryApi(id, payload) {
+  return api.put(`/time-entries/${id}`, payload)
 }
 
-export function deleteTimeEntry(id) {
-  return apiClient.delete(`/time-entries/${id}`)
+export function deleteTimeEntryApi(id) {
+  return api.delete(`/time-entries/${id}`)
 }

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '@/api/axios'
+import { loginApi, fetchCurrentUserApi}  from '@/api/auth'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -9,12 +10,13 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isAuthenticated: (state) => !!state.token,
+    isAdmin: (state) => state.user?.role === 'ROLE_ADMIN',
   },
 
   actions: {
     async login(credentials) {
       // 1. API Call zum Backend (/api/auth/login)
-      const response = await api.post('/auth/login', credentials)
+      const response = await loginApi(credentials)
       
       // 2. Token extrahieren (Annahme: Backend schickt { token: '...' })
       const token = response.data.token
@@ -31,7 +33,7 @@ export const useAuthStore = defineStore('auth', {
     async fetchCurrentUser() {
       if (!this.token) return
       try {
-        const response = await api.get('/auth/me')
+        const response = await fetchCurrentUserApi()
         this.user = response.data
       } catch (error) {
         this.logout()

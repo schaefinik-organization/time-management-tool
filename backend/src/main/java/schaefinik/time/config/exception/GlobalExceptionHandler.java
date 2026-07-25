@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
                 .build();
 
         // Optional: Logge den Stacktrace hier für das Backend-Team
-        // ex.printStackTrace();
+        ex.printStackTrace();
 
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -20,22 +20,22 @@ public class TimeEntryController {
         this.timeEntryService = timeEntryService;
     }
 
-    @GetMapping
+    @GetMapping(produces = "application/json")
     public List<TimeEntryResponse> findByDate(@RequestParam LocalDate date) {
         return timeEntryService.findByDate(date);
     }
 
-    @PostMapping
+    @PostMapping(produces = "application/json")
     public TimeEntryResponse create(@Valid @RequestBody TimeEntryRequest request) {
         return timeEntryService.create(request);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", produces = "application/json")
     public TimeEntryResponse update(@PathVariable Long id, @Valid @RequestBody TimeEntryRequest request) {
         return timeEntryService.update(id, request);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(value = "/{id}", produces = "application/json")
     public void delete(@PathVariable Long id) {
         timeEntryService.delete(id);
     }

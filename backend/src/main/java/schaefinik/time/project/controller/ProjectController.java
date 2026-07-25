@@ -19,19 +19,29 @@ import java.util.List;
 public class ProjectController {
     private final ProjectService projectService;
 
-    @GetMapping
+    @GetMapping(produces = "application/json")
     public ResponseEntity<List<ProjectResponse>> findAll() {
         return ResponseEntity.ok(projectService.findAll());
     }
 
-    @GetMapping("/{id}") // NEU: Detailansicht
+    @GetMapping(value = "/{id}", produces = "application/json") // NEU: Detailansicht
     public ResponseEntity<Object> findById(@PathVariable Long id) {
         return ResponseEntity.ok(projectService.findById(id));
     }
 
-    @PostMapping
+    @PostMapping(produces = "application/json")
     public ResponseEntity<ProjectResponse> create(@Valid @RequestBody ProjectRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(projectService.create(request));
     }
-    // ... update/delete bleiben wie gehabt, aber in ResponseEntity gewrappt
+
+    @PutMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity<ProjectResponse> update(@PathVariable Long id, @Valid @RequestBody ProjectRequest request) {
+        return ResponseEntity.ok(projectService.update(id, request));
+    }
+
+    @DeleteMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        projectService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
