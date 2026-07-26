@@ -5,6 +5,7 @@ plugins {
     id 'com.github.node-gradle.node' version '7.1.0'
 }
 
+// ... (Group, Version, Java Toolchain wie gehabt)
 group = 'schaefinik'
 version = '0.0.2-ALPHA'
 
@@ -12,6 +13,78 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+// --- SPEZIAL TASKS ---
+tasks.named('clean') {
+    delete "${project.projectDir}/src/main/resources/static/assets"
+    delete "${project.projectDir}/src/main/resources/static/index.html"
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    failOnNoDiscoveredTests = false
+}
+// 1. Deep Clean: Löscht Build-Artefakte UND node_modules
+tasks.register('deepClean', Delete) {
+    dependsOn 'clean'
+    delete "${project.projectDir}/frontend/node_modules"
+    delete "${project.projectDir}/frontend/dist"
+    delete "${project.projectDir}/src/main/resources/static"
+}
+// 2. DB Reset: Löscht alle Daten in Postgres (Docker basiert)
+// Hilfs-Task: Stoppt die DB und löscht die Daten (Volumes)
+tasks.register('dbStop', Exec) {
+    workingDir ".."
+    // "ignoreExitValue" verhindert, dass der Build abbricht, falls die DB gar nicht lief
+    ignoreExitValue true 
+    commandLine 'docker-compose', 'down', '-v'
+}
+
+// Hilfs-Task: Startet die DB neu
+tasks.register('dbStart', Exec) {
+    workingDir ".."
+    commandLine 'docker-compose', 'up', '-d', 'db'
+}
+
+// Der eigentliche Reset-Befehl, den du aufrufst
+tasks.register('dbReset') {
+    group = 'database'
+    description = 'Stoppt die DB, löscht alle Daten und startet sie neu.'
+    
+    dependsOn 'dbStop'
+    dependsOn 'dbStart'
+    
+    // Sicherstellen, dass Start erst nach Stop ausgeführt wird
+    dbStart.mustRunAfter dbStop
+    
+    doLast {
+        println "Datenbank wurde erfolgreich zurückgesetzt."
+    }
+}
+// 3. Local Build: Alles vorbereiten für den Start
+tasks.register('devBuild') {
+    group = 'build'
+    dependsOn 'processResources'
+    doLast {
+        println "Projekt ist bereit für ./gradlew bootRun"
+    }
+}
+// --- FRONTEND PIPELINE ---
+
+node {
+    version = '22.12.0'
+    download = true
+    nodeProjectDir = file("${project.projectDir}/frontend")
+}
+
+tasks.named('processResources') {
+    dependsOn 'copyFrontendToStatic'
+}
+
+tasks.register('copyFrontendToStatic', Copy) {
+    dependsOn 'buildFrontend'
+    from("${project.projectDir}/frontend/dist")
+    into("${project.projectDir}/src/main/resources/static")
 }
 
 repositories {
@@ -40,40 +113,4 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-node {
-    version = '22.19.0'
-    download = true
-    nodeProjectDir = file("${project.projectDir}/frontend")
-}
-
-tasks.register('npmInstallFrontend', com.github.gradle.node.npm.task.NpmInstallTask) {
-    workingDir = file("${project.projectDir}/frontend")
-}
-
-tasks.register('buildFrontend', com.github.gradle.node.npm.task.NpmTask) {
-    dependsOn 'npmInstallFrontend'
-    workingDir = file("${project.projectDir}/frontend")
-    args = ['run', 'build']
-}
-
-tasks.register('copyFrontendToStatic', Copy) {
-    dependsOn 'buildFrontend'
-    from("${project.projectDir}/frontend/dist")
-    into("${project.projectDir}/src/main/resources/static")
-}
-
-tasks.named('processResources') {
-    dependsOn 'copyFrontendToStatic'
-}
-
-tasks.named('clean') {
-    delete "${project.projectDir}/src/main/resources/static/assets"
-    delete "${project.projectDir}/src/main/resources/static/index.html"
-}
-
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-    failOnNoDiscoveredTests = false
 }
