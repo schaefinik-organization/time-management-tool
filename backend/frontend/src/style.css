@@ -3,6 +3,24 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 :root {
+  --surface: #ffffff;
+  --surface-soft: #f9fafb;
+  --border: #e5e7eb;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --primary: #2563eb;
+  --danger: #ef4444;
+}
+
+[data-theme='dark'] {
+  --surface: #1f2937;
+  --surface-soft: #374151;
+  --border: #4b5563;
+  --text: #f9fafb;
+  --text-muted: #9ca3af;
+}
+
+:root {
   --bg: #f8fafc;
   --bg-muted: #f1f5f9;
   --surface: #ffffff;

@@ -1,17 +1,17 @@
-import apiClient from './client'
+import api from '@/api/axios'
 
-export function fetchProjects() {
-  return apiClient.get('/projects')
+export function fetchProjectsApi() {
+  return api.get('/projects')
 }
 
-export function createProject(payload) {
-  return apiClient.post('/projects', payload)
+export function createProjectApi(payload) {
+  return api.post('/projects', payload)
 }
 
-export function updateProject(id, payload) {
-  return apiClient.put(`/projects/${id}`, payload)
+export function updateProjectApi(id, payload) {
+  return api.put(`/projects/${id}`, payload)
 }
 
-export function deleteProject(id) {
-  return apiClient.delete(`/projects/${id}`)
+export function deleteProjectApi(id) {
+  return api.delete(`/projects/${id}`)
 }
