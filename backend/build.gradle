@@ -87,6 +87,10 @@ tasks.register('copyFrontendToStatic', Copy) {
     into("${project.projectDir}/src/main/resources/static")
 }
 
+tasks.register('buildFrontend', com.github.gradle.node.npm.task.NpmTask) {
+    dependsOn 'npmInstall'
+    args = ['run', 'build']
+}
 repositories {
     mavenCentral()
 }

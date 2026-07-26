@@ -9,6 +9,9 @@ import schaefinik.time.user.enums.Role;
 import schaefinik.time.user.model.TimeUser;
 import schaefinik.time.user.repository.TimeUserRepository;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
+
 @Component
 @RequiredArgsConstructor
 @Order(1) // Zuerst ausführen
