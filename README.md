@@ -70,21 +70,3 @@ Das Projekt verfügt über ein integriertes Backup-System vor jedem Deployment. 
 ---
 
 *Erstellt mit ❤️ von [schaefinik](https://github.com/schaefinik)*
-```
-
----
-
-### 5. Dein Commit-Plan
-Da du alles aufgeräumt hast, empfehle ich diesen strukturierten Commit:
-
-**Commit Message:**
-```text
-build(dev): implement advanced build-pipeline and data seeding
-
-- Added Gradle tasks: dbReset, deepClean, devBuild
-- Implemented environment-aware DataSeeders (Admin, Projects, TimeEntries)
-- Integrated Docker-Compose for automated DB lifecycle
-- Added deployment management script with backup/rollback support
-- Refined .gitignore to protect secrets while providing examples
-- Updated README with professional dev-instructions
-```
