@@ -113,7 +113,7 @@ public class UserService {
       user.setRole(request.role());
     }
 
-    if (request.enabled() != false) {
+    if (request.enabled() != null && request.enabled() != user.isEnabled()) {
       user.setEnabled(request.enabled());
     }
 

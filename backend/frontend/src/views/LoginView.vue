@@ -72,15 +72,18 @@ const redirectTarget = computed(() => route.query.redirect || '/time-entries')
 
 async function handleLogin() {
   await handleAction(
-    // 1. Die Aktion: AuthStore Login aufrufen
     () => authStore.login({ 
-      username: form.username, // Backend erwartet oft 'username'
+      username: form.username, 
       password: form.password 
     }),
-    // 2. Was passiert bei Erfolg?
     () => {
       router.push(redirectTarget.value)
     }
-  )
+  );
+
+  // UX-Verbesserung: Wenn nach dem Aufruf errorMessage gesetzt ist (Fehler trat auf)
+  if (errorMessage.value) {
+    form.password = ''; // Passwortfeld leeren bei Fehler
+  }
 }
 </script>

@@ -8,6 +8,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -15,6 +17,24 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // Spezifische Behandlung für Security-Fehler
+@ExceptionHandler({BadCredentialsException.class, DisabledException.class})
+public ResponseEntity<ApiError> handleAuthenticationException(
+        Exception ex, HttpServletRequest request) {
+    
+    HttpStatus status = HttpStatus.UNAUTHORIZED; // 401
+    
+    ApiError apiError = ApiError.builder()
+            .timestamp(LocalDateTime.now())
+            .status(status.value())
+            .error("Authentication Failed")
+            .message(ex.getMessage()) // Hier landet z.B. "Ihr Account wurde deaktiviert"
+            .path(request.getRequestURI())
+            .build();
+
+    return new ResponseEntity<>(apiError, status);
+}
 
     // 1. Behandlung von Validierungsfehlern (ausgelöst durch @Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)

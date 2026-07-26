@@ -53,6 +53,9 @@ public class SecurityConfig {
                                                                 "/projects",
                                                                 "/time-entries",
                                                                 "/login",
+                                                                "/profile",
+                                                                "/admin",
+                                                                "/admin/users",
                                                                 "/error")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
