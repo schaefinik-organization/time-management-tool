@@ -1,5 +1,6 @@
 package schaefinik.time.config;
 
+import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,7 @@ public class WebConfig {
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
           @Override
-          public void addCorsMappings(CorsRegistry registry) {
+          public void addCorsMappings(@Nonnull CorsRegistry registry) {
             registry.addMapping("/api/**")
                     .allowedOrigins(allowedOrigins) // Nutzt den Wert aus der Properties-Datei
                     .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")

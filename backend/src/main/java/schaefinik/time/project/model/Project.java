@@ -3,6 +3,9 @@ package schaefinik.time.project.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import schaefinik.time.user.model.TimeUser;
 
 @Entity
 @Table(name = "projects")
@@ -30,4 +33,13 @@ public class Project {
     @Column(nullable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
-}
+
+    @ManyToMany
+    @JoinTable(
+        name = "project_assignments",
+        joinColumns = @JoinColumn(name = "project_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @Builder.Default   
+    private Set<TimeUser> assignedUsers = new HashSet<>();
+} 

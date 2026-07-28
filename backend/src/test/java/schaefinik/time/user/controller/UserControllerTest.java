@@ -2,32 +2,26 @@ package schaefinik.time.user.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.*;
 
+import schaefinik.time.auth.controller.AuthController;
 import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.user.requestData.AccountRequest;
 import schaefinik.time.user.requestData.UserRequest;
 import schaefinik.time.user.service.UserService;
 
-@RestController
-@RequestMapping("/api/user")
-@RequiredArgsConstructor
-public class UserController {
+@WebMvcTest(UserController.class)
+public class UserControllerTest {
 
-  private final UserService userService;
+  @Autowired
+  private MockMvc mockMvc;
 
-  @PutMapping(value = "/update-profile", produces = "application/json")
-  public void updateProfile(
-      @AuthenticationPrincipal TimeUserPrincipal principal,
-      @Valid @RequestBody UserRequest request) {
-    userService.updateUser(principal, request);
-  }
+  @Mock
+  private UserService userService;
 
-  @PostMapping(value = "/change-password", produces = "application/json")
-  public void changePassword(
-      @AuthenticationPrincipal TimeUserPrincipal principal,
-      @Valid @RequestBody AccountRequest request) {
-    userService.changePassword(principal, request);
-  }
 }

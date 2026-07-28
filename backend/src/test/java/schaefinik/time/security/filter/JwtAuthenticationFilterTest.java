@@ -5,6 +5,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import schaefinik.time.auth.service.AuthService;
 import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.security.service.CustomUserDetailsService;
 import schaefinik.time.security.service.JwtService;
@@ -18,48 +23,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
-@RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+@ExtendWith(MockitoExtension.class)
+public class JwtAuthenticationFilterTest {
 
-    private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
+    @InjectMocks
+    private JwtAuthenticationFilter sut;
 
-    @Override
-    protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain) throws ServletException, IOException {
+    @Mock
+    private JwtService jwtService;
 
-        String authHeader = request.getHeader("Authorization");
+    @Mock
+    private CustomUserDetailsService userDetailsService;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String token = authHeader.substring(7);
-        String username;
-
-        try {
-            username = jwtService.extractUsername(token);
-        } catch (Exception ex) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            TimeUserPrincipal principal = (TimeUserPrincipal) userDetailsService.loadUserByUsername(username);
-
-            if (jwtService.isValid(token, principal)) {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal,
-                        null, principal.getAuthorities());
-
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        }
-
-        filterChain.doFilter(request, response);
-    }
 }

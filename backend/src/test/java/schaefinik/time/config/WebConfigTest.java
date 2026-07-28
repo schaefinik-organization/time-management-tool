@@ -1,28 +1,21 @@
 package schaefinik.time.config;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import schaefinik.time.auth.service.AuthService;
 
-@Configuration
-public class WebConfig {
+@ExtendWith(MockitoExtension.class)
+public class WebConfigTest {
 
-    @Value("${app.cors.allowed-origins}")
+    @InjectMocks
+    private WebConfig sut;
+
     private String allowedOrigins;
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-          @Override
-          public void addCorsMappings(CorsRegistry registry) {
-            registry.addMapping("/api/**")
-                    .allowedOrigins(allowedOrigins) // Nutzt den Wert aus der Properties-Datei
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                    .allowedHeaders("*")
-                    .allowCredentials(true);
-          }
-        };
-    }
 }

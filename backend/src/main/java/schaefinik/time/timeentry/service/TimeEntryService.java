@@ -16,6 +16,7 @@ import schaefinik.time.timeentry.requestData.TimeEntryRequest;
 import schaefinik.time.timeentry.responseData.TimeEntryResponse;
 import schaefinik.time.user.model.TimeUser;
 import schaefinik.time.user.repository.TimeUserRepository;
+import schaefinik.time.report.responseData.ReportDTO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -84,6 +85,10 @@ public class TimeEntryService {
                 .orElseThrow(() -> new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_NOT_FOUND + id));
 
         timeEntryRepository.delete(entry);
+    }
+
+    public List<ReportDTO> getAggregatedReport(LocalDate start, LocalDate end) {
+        return timeEntryRepository.getAggregatedReport(start, end);
     }
 
     private TimeEntry findTimeEntry(Long id) {

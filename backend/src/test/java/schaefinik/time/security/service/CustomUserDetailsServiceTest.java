@@ -1,22 +1,24 @@
 package schaefinik.time.security.service;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import schaefinik.time.auth.service.AuthService;
 import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.user.repository.TimeUserRepository;
 
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 
-@Service
-@RequiredArgsConstructor
-public class CustomUserDetailsService implements UserDetailsService {
+@ExtendWith(MockitoExtension.class)
+public class CustomUserDetailsServiceTest {
 
-  private final TimeUserRepository userRepository;
+  @InjectMocks
+  private CustomUserDetailsService sut;
 
-  @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    return userRepository.findByUsername(username)
-        .map(TimeUserPrincipal::new)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-  }
+  @Mock
+  private TimeUserRepository userRepository;
+
 }

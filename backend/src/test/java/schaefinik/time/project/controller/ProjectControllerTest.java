@@ -2,6 +2,11 @@ package schaefinik.time.project.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.web.servlet.MockMvc;
+import schaefinik.time.auth.controller.AuthController;
 import schaefinik.time.project.requestData.ProjectRequest;
 import schaefinik.time.project.responseData.ProjectResponse;
 import schaefinik.time.project.service.ProjectService;
@@ -12,12 +17,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// --- ProjectController.java ---
-@RestController
-@RequestMapping("/api/projects")
-@RequiredArgsConstructor
-public class ProjectController {
-    private final ProjectService projectService;
+@WebMvcTest(ProjectController.class)
+public class ProjectControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Mock
+    private ProjectService projectService;
 
     @GetMapping(produces = "application/json")
     public ResponseEntity<List<ProjectResponse>> findAll() {

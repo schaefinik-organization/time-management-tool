@@ -2,12 +2,17 @@ package schaefinik.time.user.service;
 
 import java.util.List;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import schaefinik.time.auth.responseData.CurrentUserResponse;
+import schaefinik.time.auth.service.AuthService;
 import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.user.enums.Role;
 import schaefinik.time.user.model.TimeUser;
@@ -16,13 +21,17 @@ import schaefinik.time.user.requestData.AccountRequest;
 import schaefinik.time.user.requestData.UserRequest;
 import schaefinik.time.user.responseData.UserResponse;
 
-@Service
-@RequiredArgsConstructor
-@Transactional
-public class UserService {
+@ExtendWith(MockitoExtension.class)
+public class UserServiceTest {
 
-  private final TimeUserRepository userRepository;
-  private final PasswordEncoder passwordEncoder;
+  @InjectMocks
+  private UserService sut;
+
+  @Mock
+  private TimeUserRepository userRepository;
+
+  @Mock
+  private PasswordEncoder passwordEncoder;
 
   public UserResponse createUser(UserRequest request) {
     if (userRepository.existsByUsername(request.username())) {

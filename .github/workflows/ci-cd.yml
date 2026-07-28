@@ -1,0 +1,76 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-analyze:
+    runs-on: self-hosted # Läuft direkt auf deiner Debian-VM
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Wichtig für genaue SonarQube-Analysen
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # Gradle Caching ist auf Self-Hosted Runnern meist nicht zwingend nötig,
+      # beschleunigt aber parallele/wiederholte Runs:
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Build and Test with Gradle
+        run: |
+          cd backend
+          chmod +x gradlew
+          ./gradlew build jacocoTestReport
+
+      - name: SonarQube Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # Da Runner & SonarQube auf derselben VM laufen,
+          # erreicht der Runner Sonar über das interne Docker-Netzwerk oder localhost:
+          SONAR_HOST_URL: "http://localhost:9000"
+        run: |
+          cd backend
+          ./gradlew sonar \
+            -Dsonar.projectKey=mein-backend-projekt \
+            -Dsonar.projectName="Mein Backend Service" \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.token=$SONAR_TOKEN
+
+  deploy-dev:
+    needs: build-and-analyze
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to DEV Environment
+        run: |
+          cd backend
+          # Baut das Docker Image neu und startet den Dev-Container ohne Downtime-Peaks
+          docker compose -f docker-compose.dev.yml up -d --build
+
+  deploy-prod:
+    needs: build-and-analyze
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to PROD Environment
+        run: |
+          cd backend
+          # Baut das Docker Image neu und startet den Prod-Container
+          docker compose -f docker-compose.prod.yml up -d --build

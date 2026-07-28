@@ -31,6 +31,9 @@
               <RouterLink :to="{ name: 'admin-users' }" class="dropdown-item" @click="adminMenuOpen = false">
                 Benutzerverwaltung
               </RouterLink>
+               <RouterLink :to="{ name: 'admin-reports' }" class="dropdown-item" @click="adminMenuOpen = false">
+                Benutzerreporting
+              </RouterLink>
             </div>
           </div>
         </nav>
@@ -92,6 +95,8 @@
           <div class="mt-2 border-t pt-2">
             <p class="px-3 py-1 text-xs font-bold uppercase text-muted">Admin</p>
             <RouterLink :to="{ name: 'admin-users' }" class="p-3 block" @click="mobileMenuOpen = false">Benutzerverwaltung</RouterLink>
+            <RouterLink :to="{ name: 'admin-reports' }" class="p-3 block" @click="mobileMenuOpen = false">Benutzerreporting
+            </RouterLink>
           </div>
         </template>
       </nav>

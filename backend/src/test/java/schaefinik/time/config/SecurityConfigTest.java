@@ -1,6 +1,11 @@
 package schaefinik.time.config;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import schaefinik.time.auth.service.AuthService;
 import schaefinik.time.security.filter.JwtAuthenticationFilter;
 import schaefinik.time.security.service.CustomUserDetailsService;
 
@@ -27,90 +32,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-@Configuration
-@EnableMethodSecurity
-@RequiredArgsConstructor
-public class SecurityConfig {
+@ExtendWith(MockitoExtension.class)
+public class SecurityConfigTest {
 
-        private final JwtAuthenticationFilter jwtAuthenticationFilter;
-        private final CustomUserDetailsService userDetailsService;
+        @InjectMocks
+        private SecurityConfig sut;
 
-        @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                return http
-                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                                .csrf(csrf -> csrf.disable())
-                                .httpBasic(Customizer.withDefaults())
-                                .formLogin(form -> form.disable())
-                                .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers(
-                                                                "/",
-                                                                "/index.html",
-                                                                "/favicon.ico",
-                                                                "/assets/**",
-                                                                "/projects",
-                                                                "/time-entries",
-                                                                "/login",
-                                                                "/error")
-                                                .permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                                .requestMatchers("/api/users/**").authenticated()
-                                                .requestMatchers("/api/auth/me").authenticated()
-                                                .requestMatchers("/api/projects/**").authenticated()
-                                                .requestMatchers("/api/time-entries/**").authenticated()
-                                                .anyRequest().authenticated())
-                                .authenticationProvider(authenticationProvider())
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                                .exceptionHandling(ex -> ex
-                                                .authenticationEntryPoint((request, response, authException) -> {
-                                                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                                                        response.setContentType("application/json");
-                                                        response.getWriter()
-                                                                        .write("""
-                                                                                            {"status":401,"error":"Unauthorized","message":"Authentication required"}
-                                                                                        """);
-                                                })
-                                                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                                                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                                                        response.setContentType("application/json");
-                                                        response.getWriter()
-                                                                        .write("""
-                                                                                            {"status":403,"error":"Forbidden","message":"Access denied"}
-                                                                                        """);
-                                                }))
-                                .build();
-        }
+        @Mock
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-        @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-                CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Dein Vue-Server
-                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
-                configuration.setAllowCredentials(true); // Wichtig für Cookies/Auth-Header
+        @Mock
+        private CustomUserDetailsService userDetailsService;
 
-                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                source.registerCorsConfiguration("/**", configuration);
-                return source;
-        }
-
-        @Bean
-        public AuthenticationProvider authenticationProvider() {
-                DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-                provider.setPasswordEncoder(passwordEncoder());
-                return provider;
-        }
-
-        @Bean
-        public PasswordEncoder passwordEncoder() {
-                return new BCryptPasswordEncoder();
-        }
-
-        @Bean
-        public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-                return configuration.getAuthenticationManager();
-        }
 }

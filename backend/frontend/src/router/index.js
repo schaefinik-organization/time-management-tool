@@ -6,6 +6,7 @@ import TimeEntryView from '@/views/TimeEntryView.vue'
 import LoginView from '@/views/LoginView.vue'
 import AdminUsersView from '@/views/admin/AdminUsersView.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import AdminReportsView from '@/views/admin/AdminReportsView.vue'
 
 const routes = [
   {
@@ -34,6 +35,12 @@ const routes = [
     path: '/admin/users',
     name: 'admin-users',
     component: AdminUsersView,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/reports',
+    name: 'admin-reports',
+    component: AdminReportsView,
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {

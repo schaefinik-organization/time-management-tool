@@ -1,10 +1,12 @@
 package schaefinik.time.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import schaefinik.time.security.filter.JwtAuthenticationFilter;
 import schaefinik.time.security.service.CustomUserDetailsService;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,9 +41,9 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 return http
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                                .csrf(csrf -> csrf.disable())
+                                .csrf(AbstractHttpConfigurer::disable)
                                 .httpBasic(Customizer.withDefaults())
-                                .formLogin(form -> form.disable())
+                                .formLogin(AbstractHttpConfigurer::disable)
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
@@ -54,8 +56,7 @@ public class SecurityConfig {
                                                                 "/time-entries",
                                                                 "/login",
                                                                 "/profile",
-                                                                "/admin",
-                                                                "/admin/users",
+                                                                "/admin/**",
                                                                 "/error")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
@@ -90,9 +91,9 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Dein Vue-Server
-                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+                configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Dein Vue-Server
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
                 configuration.setAllowCredentials(true); // Wichtig für Cookies/Auth-Header
 
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -1,9 +1,14 @@
 package schaefinik.time.project.service;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import schaefinik.time.auth.service.AuthService;
 import schaefinik.time.project.model.Project;
 import schaefinik.time.project.repository.ProjectRepository;
 import schaefinik.time.project.requestData.ProjectRequest;
@@ -11,64 +16,12 @@ import schaefinik.time.project.responseData.ProjectResponse;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-@Transactional
-public class ProjectService {
+@ExtendWith(MockitoExtension.class)
+public class ProjectServiceTest {
 
-    private final ProjectRepository projectRepository;
+    @InjectMocks
+    private ProjectService sut;
 
-    public List<ProjectResponse> findAll() {
-        return projectRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-
-    public ProjectResponse create(ProjectRequest request) {
-        if (projectRepository.existsByName(request.name())) {
-            throw new IllegalArgumentException("Project name already exists");
-        }
-
-        Project project = Project.builder()
-                .name(request.name())
-                .description(request.description())
-                .active(true)
-                .build();
-
-        Project saved = projectRepository.save(project);
-        return mapToResponse(saved);
-    }
-
-    public ProjectResponse update(Long id, ProjectRequest request) {
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Projekt nicht gefunden: " + id));
-
-        project.setName(request.name());
-        project.setDescription(request.description());
-
-        Project updated = projectRepository.save(project);
-        return mapToResponse(updated);
-    }
-
-    public void delete(Long id) {
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Projekt nicht gefunden: " + id));
-
-        projectRepository.delete(project);
-    }
-
-    private ProjectResponse mapToResponse(Project project) {
-        return new ProjectResponse(
-                project.getId(),
-                project.getName(),
-                project.getDescription());
-    }
-
-    public Object findById(Long id) {
-        Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Projekt nicht gefunden: " + id));
-
-        return mapToResponse(project);
-    }
+    @Mock
+    private ProjectRepository projectRepository;
 }
