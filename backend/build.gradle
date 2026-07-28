@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.5.16'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.github.node-gradle.node' version '7.1.0'
+    id 'jacoco'
 }
 
 // ... (Group, Version, Java Toolchain wie gehabt)
@@ -91,6 +92,20 @@ tasks.register('buildFrontend', com.github.gradle.node.npm.task.NpmTask) {
     dependsOn 'npmInstall'
     args = ['run', 'build']
 }
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco')
+    }
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
 repositories {
     mavenCentral()
 }
@@ -116,5 +131,6 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

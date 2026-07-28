@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import schaefinik.time.project.model.Project;
 import schaefinik.time.project.repository.ProjectRepository;
 import schaefinik.time.timeentry.model.TimeEntry;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Random;
 
 @Component
+@ConditionalOnProperty(name = "app.seeder.enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 @Order(4) // Wichtig: Muss nach User- und ProjectSeeder laufen
 public class TestTimeEntrySeeder implements CommandLineRunner {

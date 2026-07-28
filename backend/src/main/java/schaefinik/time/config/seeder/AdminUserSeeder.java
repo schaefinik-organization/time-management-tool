@@ -11,8 +11,10 @@ import schaefinik.time.user.repository.TimeUserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Component
+@ConditionalOnProperty(name = "app.seeder.enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 @Order(1) // Zuerst ausführen
 public class AdminUserSeeder implements CommandLineRunner {
