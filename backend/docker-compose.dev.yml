@@ -9,9 +9,32 @@ services:
     restart: always
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dev_db:5432/time_dev_db
+      - SPRING_DATASOURCE_USERNAME=dev_user
+      - SPRING_DATASOURCE_PASSWORD=dev_secret_password
     networks:
       - reverse-proxy-net
+      - dev-internal
+    depends_on:
+      - dev_db
+
+  dev_db:
+    image: postgres:15-alpine
+    container_name: app-dev-db
+    restart: always
+    environment:
+      POSTGRES_DB: time_dev_db
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_secret_password
+    volumes:
+      - dev_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dev-internal
 
 networks:
   reverse-proxy-net:
     external: true
+  dev-internal:
+
+volumes:
+  dev_postgres_data:

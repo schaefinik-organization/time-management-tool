@@ -9,9 +9,32 @@ services:
     restart: always
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://prod_db:5432/time_prod_db
+      - SPRING_DATASOURCE_USERNAME=prod_user
+      - SPRING_DATASOURCE_PASSWORD=prod_super_secret_password
     networks:
       - reverse-proxy-net
+      - prod-internal
+    depends_on:
+      - prod_db
+
+  prod_db:
+    image: postgres:15-alpine
+    container_name: app-prod-db
+    restart: always
+    environment:
+      POSTGRES_DB: time_prod_db
+      POSTGRES_USER: prod_user
+      POSTGRES_PASSWORD: prod_super_secret_password
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+    networks:
+      - prod-internal
 
 networks:
   reverse-proxy-net:
     external: true
+  prod-internal:
+
+volumes:
+  prod_postgres_data:
