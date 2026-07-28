@@ -1,25 +1,24 @@
 package schaefinik.time.auth.service;
 
 import org.assertj.core.api.WithAssertions;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import schaefinik.time.user.model.TimeUser;
-import schaefinik.time.user.enums.Role;
+import schaefinik.time.auth.requestData.LoginRequest;
 import schaefinik.time.auth.responseData.AuthResponse;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-
 import schaefinik.time.security.properties.JwtProperties;
 import schaefinik.time.security.service.JwtService;
-import schaefinik.time.auth.requestData.LoginRequest;
+import schaefinik.time.user.enums.Role;
+import schaefinik.time.user.model.TimeUser;
 import schaefinik.time.user.repository.TimeUserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,12 +43,12 @@ public class AuthServiceTest implements WithAssertions {
     private LoginRequest loginRequest;
 
     @Test
-    public void test_login_throws_badCredentialsException() throws Exception {
+    public void test_login_throws_badCredentialsException() {
         Mockito.when(loginRequest.username()).thenReturn("user");
         Mockito.when(loginRequest.password()).thenReturn("wrong-password");
 
         Mockito.when(authenticationManager.authenticate(
-                ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)))
+                        ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
         assertThatThrownBy(() -> sut.login(loginRequest))
@@ -57,12 +56,12 @@ public class AuthServiceTest implements WithAssertions {
     }
 
     @Test
-    public void test_login_throws_badCredentialsException_when_user_not_found() throws Exception {
+    public void test_login_throws_badCredentialsException_when_user_not_found() {
         Mockito.when(loginRequest.username()).thenReturn("nonexistent");
         Mockito.when(loginRequest.password()).thenReturn("any");
 
         Mockito.when(authenticationManager.authenticate(
-                ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)))
+                        ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(null);
 
         Mockito.when(userRepository.findByUsername("nonexistent")).thenReturn(java.util.Optional.empty());
@@ -72,12 +71,12 @@ public class AuthServiceTest implements WithAssertions {
     }
 
     @Test
-    public void test_login_throws_disabledException_when_account_disabled() throws Exception {
+    public void test_login_throws_disabledException_when_account_disabled() {
         Mockito.when(loginRequest.username()).thenReturn("disabledUser");
         Mockito.when(loginRequest.password()).thenReturn("any");
 
         Mockito.when(authenticationManager.authenticate(
-                ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)))
+                        ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new DisabledException("Account disabled"));
 
         assertThatThrownBy(() -> sut.login(loginRequest))
@@ -85,13 +84,13 @@ public class AuthServiceTest implements WithAssertions {
     }
 
     @Test
-    public void test_login_success_returns_authResponse() throws Exception {
+    public void test_login_success_returns_authResponse() {
         Mockito.when(loginRequest.username()).thenReturn("goodUser");
         Mockito.when(loginRequest.password()).thenReturn("correct-password");
 
         Authentication authentication = Mockito.mock(Authentication.class);
         Mockito.when(authenticationManager.authenticate(
-                ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)))
+                        ArgumentMatchers.any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
 
         TimeUser user = TimeUser.builder()

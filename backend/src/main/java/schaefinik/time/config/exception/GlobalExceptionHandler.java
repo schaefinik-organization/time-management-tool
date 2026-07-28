@@ -4,12 +4,12 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -18,97 +18,97 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Spezifische Behandlung für Security-Fehler
-@ExceptionHandler({BadCredentialsException.class, DisabledException.class})
-public ResponseEntity<ApiError> handleAuthenticationException(
-        Exception ex, HttpServletRequest request) {
-    
-    HttpStatus status = HttpStatus.UNAUTHORIZED; // 401
-    
-    ApiError apiError = ApiError.builder()
-            .timestamp(LocalDateTime.now())
-            .status(status.value())
-            .error("Authentication Failed")
-            .message(ex.getMessage()) // Hier landet z.B. "Ihr Account wurde deaktiviert"
-            .path(request.getRequestURI())
-            .build();
+	// Spezifische Behandlung für Security-Fehler
+	@ExceptionHandler({BadCredentialsException.class, DisabledException.class})
+	public ResponseEntity<ApiError> handleAuthenticationException(
+			Exception ex, HttpServletRequest request) {
 
-    return new ResponseEntity<>(apiError, status);
-}
+		HttpStatus status = HttpStatus.UNAUTHORIZED; // 401
 
-    // 1. Behandlung von Validierungsfehlern (ausgelöst durch @Valid)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidationExceptions(
-            MethodArgumentNotValidException ex, HttpServletRequest request) {
+		ApiError apiError = ApiError.builder()
+				.timestamp(LocalDateTime.now())
+				.status(status.value())
+				.error("Authentication Failed")
+				.message(ex.getMessage()) // Hier landet z.B. "Ihr Account wurde deaktiviert"
+				.path(request.getRequestURI())
+				.build();
 
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
+		return new ResponseEntity<>(apiError, status);
+	}
 
-        ApiError apiError = ApiError.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Validation Failed")
-                .message("Eingabewerte sind ungültig")
-                .path(request.getRequestURI())
-                .validationErrors(errors)
-                .build();
+	// 1. Behandlung von Validierungsfehlern (ausgelöst durch @Valid)
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ApiError> handleValidationExceptions(
+			MethodArgumentNotValidException ex, HttpServletRequest request) {
 
-        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
-    }
+		Map<String, String> errors = new HashMap<>();
+		ex.getBindingResult().getAllErrors().forEach((error) -> {
+			String fieldName = ((FieldError) error).getField();
+			String errorMessage = error.getDefaultMessage();
+			errors.put(fieldName, errorMessage);
+		});
 
-    // 2. Behandlung von "Nicht gefunden" Fehlern (z.B. falsche ID)
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFoundException(
-            EntityNotFoundException ex, HttpServletRequest request) {
+		ApiError apiError = ApiError.builder()
+				.timestamp(LocalDateTime.now())
+				.status(HttpStatus.BAD_REQUEST.value())
+				.error("Validation Failed")
+				.message("Eingabewerte sind ungültig")
+				.path(request.getRequestURI())
+				.validationErrors(errors)
+				.build();
 
-        ApiError apiError = ApiError.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error("Resource Not Found")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+		return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+	}
 
-        return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
-    }
+	// 2. Behandlung von "Nicht gefunden" Fehlern (z.B. falsche ID)
+	@ExceptionHandler(EntityNotFoundException.class)
+	public ResponseEntity<ApiError> handleNotFoundException(
+			EntityNotFoundException ex, HttpServletRequest request) {
 
-    // 3. Behandlung von Sicherheitsfehlern (optional, falls nicht von Spring
-    // Security direkt abgefangen)
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgument(
-            IllegalArgumentException ex, HttpServletRequest request) {
+		ApiError apiError = ApiError.builder()
+				.timestamp(LocalDateTime.now())
+				.status(HttpStatus.NOT_FOUND.value())
+				.error("Resource Not Found")
+				.message(ex.getMessage())
+				.path(request.getRequestURI())
+				.build();
 
-        ApiError apiError = ApiError.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Invalid Argument")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+		return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
+	}
 
-        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
-    }
+	// 3. Behandlung von Sicherheitsfehlern (optional, falls nicht von Spring
+	// Security direkt abgefangen)
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ApiError> handleIllegalArgument(
+			IllegalArgumentException ex, HttpServletRequest request) {
 
-    // 4. Globaler Fallback für alle anderen Fehler
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleGlobalException(
-            Exception ex, HttpServletRequest request) {
+		ApiError apiError = ApiError.builder()
+				.timestamp(LocalDateTime.now())
+				.status(HttpStatus.BAD_REQUEST.value())
+				.error("Invalid Argument")
+				.message(ex.getMessage())
+				.path(request.getRequestURI())
+				.build();
 
-        ApiError apiError = ApiError.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("Ein unerwarteter Fehler ist aufgetreten.")
-                .path(request.getRequestURI())
-                .build();
+		return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+	}
 
-        // Optional: Logge den Stacktrace hier für das Backend-Team
-        ex.printStackTrace();
+	// 4. Globaler Fallback für alle anderen Fehler
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ApiError> handleGlobalException(
+			Exception ex, HttpServletRequest request) {
 
-        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+		ApiError apiError = ApiError.builder()
+				.timestamp(LocalDateTime.now())
+				.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+				.error("Internal Server Error")
+				.message("Ein unerwarteter Fehler ist aufgetreten.")
+				.path(request.getRequestURI())
+				.build();
+
+		// Optional: Logge den Stacktrace hier für das Backend-Team
+		ex.printStackTrace();
+
+		return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 }

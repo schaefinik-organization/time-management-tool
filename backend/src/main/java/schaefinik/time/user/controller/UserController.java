@@ -15,19 +15,19 @@ import schaefinik.time.user.service.UserService;
 @RequiredArgsConstructor
 public class UserController {
 
-  private final UserService userService;
+	private final UserService userService;
 
-  @PutMapping(value = "/update-profile", produces = "application/json")
-  public void updateProfile(
-      @AuthenticationPrincipal TimeUserPrincipal principal,
-      @Valid @RequestBody UserRequest request) {
-    userService.updateUser(principal, request);
-  }
+	@PutMapping(value = "/update-profile", produces = "application/json")
+	public void updateProfile(
+			@AuthenticationPrincipal TimeUserPrincipal principal,
+			@Valid @RequestBody UserRequest request) {
+		userService.updateUser(principal, request);
+	}
 
-  @PostMapping(value = "/change-password", produces = "application/json")
-  public void changePassword(
-      @AuthenticationPrincipal TimeUserPrincipal principal,
-      @Valid @RequestBody AccountRequest request) {
-    userService.changePassword(principal, request);
-  }
+	@PostMapping(value = "/change-password", produces = "application/json")
+	public void changePassword(
+			@AuthenticationPrincipal TimeUserPrincipal principal,
+			@Valid @RequestBody AccountRequest request) {
+		userService.changePassword(principal, request);
+	}
 }

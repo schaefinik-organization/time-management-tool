@@ -8,10 +8,10 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @Configuration
 public class MappingDebugConfig {
 
-    @Bean
-    CommandLineRunner printMappings(RequestMappingHandlerMapping handlerMapping) {
-        return args -> handlerMapping.getHandlerMethods().forEach((key, value) -> {
-            System.out.println(key + " -> " + value);
-        });
-    }
+	@Bean
+	CommandLineRunner printMappings(RequestMappingHandlerMapping handlerMapping) {
+		return args -> handlerMapping.getHandlerMethods().forEach((key, value) -> {
+			System.out.println(key + " -> " + value);
+		});
+	}
 }

@@ -15,28 +15,28 @@ import java.time.LocalDateTime;
 @Builder
 public class TimeUser {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(nullable = false, unique = true, length = 120)
-    private String username;
+	@Column(nullable = false, unique = true, length = 120)
+	private String username;
 
-    @Column(nullable = false, unique = true, length = 190)
-    private String email;
+	@Column(nullable = false, unique = true, length = 190)
+	private String email;
 
-    @Column(nullable = false)
-    private String passwordHash;
+	@Column(nullable = false)
+	private String passwordHash;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private Role role;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 30)
+	private Role role;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean enabled = true;
+	@Column(nullable = false)
+	@Builder.Default
+	private boolean enabled = true;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+	@Column(nullable = false)
+	@Builder.Default
+	private LocalDateTime createdAt = LocalDateTime.now();
 }

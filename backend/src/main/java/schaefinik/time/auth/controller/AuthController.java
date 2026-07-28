@@ -18,16 +18,16 @@ import schaefinik.time.user.service.UserService;
 @RequiredArgsConstructor
 public class AuthController {
 
-  private final AuthService authService;
-  private final UserService userService;
+    private final AuthService authService;
+    private final UserService userService;
 
-  @PostMapping(value = "/login", produces = "application/json")
-  public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-    return authService.login(request);
-  }
+    @PostMapping(value = "/login", produces = "application/json")
+    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
+        return authService.login(request);
+    }
 
-  @GetMapping(value = "/me", produces = "application/json")
-  public CurrentUserResponse me(@AuthenticationPrincipal TimeUserPrincipal principal) {
-    return userService.getCurrentUser(principal);
-  }
+    @GetMapping(value = "/me", produces = "application/json")
+    public CurrentUserResponse me(@AuthenticationPrincipal TimeUserPrincipal principal) {
+        return userService.getCurrentUser(principal);
+    }
 }

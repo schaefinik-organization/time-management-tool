@@ -11,4 +11,3 @@ plugins {
 }
 
 rootProject.name = 'time-management-tool'
-// 'include app' entfernen, da alles im root liegt
