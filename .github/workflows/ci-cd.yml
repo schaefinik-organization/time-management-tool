@@ -56,12 +56,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build JAR with Frontend
+        run: |
+          cd backend
+          chmod +x gradlew
+          ./gradlew bootJar -x test
+
       - name: Deploy to DEV Environment
         run: |
           cd backend
-          # Baut das Docker Image neu und startet den Dev-Container ohne Downtime-Peaks
           docker compose -f docker-compose.dev.yml up -d --build
-
   deploy-prod:
     needs: build-and-analyze
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
