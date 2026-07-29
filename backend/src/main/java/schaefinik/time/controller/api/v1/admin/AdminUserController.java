@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:backend/src/main/java/schaefinik/time/controller/api/v1/admin/AdminUserController.java
 package schaefinik.time.controller.api.v1.admin;
+========
+package schaefinik.time.admin.controller;
+>>>>>>>> 2e964ff (refactor: reorganize user-related classes and update package structure for admin functionality):backend/src/main/java/schaefinik/time/admin/controller/AdminUserController.java
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -6,10 +10,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+<<<<<<<< HEAD:backend/src/main/java/schaefinik/time/controller/api/v1/admin/AdminUserController.java
 import schaefinik.time.request.user.UserChangeRequest;
 import schaefinik.time.request.user.UserCreateRequest;
 import schaefinik.time.response.user.TimeUserDTO;
 import schaefinik.time.service.UserService;
+========
+import schaefinik.time.admin.responseData.UserResponse;
+import schaefinik.time.user.requestData.UserRequest;
+import schaefinik.time.user.service.UserService;
+>>>>>>>> 2e964ff (refactor: reorganize user-related classes and update package structure for admin functionality):backend/src/main/java/schaefinik/time/admin/controller/AdminUserController.java
 
 import java.util.List;
 
@@ -18,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
+
 	private final UserService userService;
 
 	@GetMapping(produces = "application/json")
