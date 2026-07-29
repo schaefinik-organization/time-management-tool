@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   backend-dev:
     build:
@@ -13,7 +12,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=dev_user
       - SPRING_DATASOURCE_PASSWORD=dev_secret_password
     networks:
-      - reverse-proxy-net
+      - proxy-network # Geändert!
       - dev-internal
     depends_on:
       - dev_db
@@ -32,7 +31,7 @@ services:
       - dev-internal
 
 networks:
-  reverse-proxy-net:
+  proxy-network:
     external: true
   dev-internal:
 
