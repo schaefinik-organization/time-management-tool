@@ -1,4 +1,4 @@
-package schaefinik.time.user.controller;
+package schaefinik.time.admin.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

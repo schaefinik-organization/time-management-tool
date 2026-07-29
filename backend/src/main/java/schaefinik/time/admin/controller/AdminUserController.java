@@ -1,4 +1,4 @@
-package schaefinik.time.user.controller;
+package schaefinik.time.admin.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import schaefinik.time.admin.responseData.UserResponse;
 import schaefinik.time.user.requestData.UserRequest;
-import schaefinik.time.user.responseData.UserResponse;
 import schaefinik.time.user.service.UserService;
 
 import java.util.List;
@@ -17,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
+
 	private final UserService userService;
 
 	@GetMapping(produces = "application/json")

@@ -1,9 +1,11 @@
 package schaefinik.time.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import schaefinik.time.admin.responseData.UserResponse;
 import schaefinik.time.auth.responseData.CurrentUserResponse;
 import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.user.enums.Role;
@@ -11,7 +13,6 @@ import schaefinik.time.user.model.TimeUser;
 import schaefinik.time.user.repository.TimeUserRepository;
 import schaefinik.time.user.requestData.AccountRequest;
 import schaefinik.time.user.requestData.UserRequest;
-import schaefinik.time.user.responseData.UserResponse;
 
 import java.util.List;
 
@@ -67,7 +68,7 @@ public class UserService {
 	public CurrentUserResponse getCurrentUser(TimeUserPrincipal principal) {
 		String role = principal.getAuthorities().stream()
 				.findFirst()
-				.map(a -> a.getAuthority())
+				.map(SimpleGrantedAuthority::getAuthority)
 				.orElse("ROLE_USER");
 
 		return new CurrentUserResponse(principal.getId(), principal.getUsername(), principal.getEmail(), role);
