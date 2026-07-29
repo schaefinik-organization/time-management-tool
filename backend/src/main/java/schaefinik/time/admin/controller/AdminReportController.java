@@ -1,4 +1,4 @@
-package schaefinik.time.user.controller;
+package schaefinik.time.admin.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import schaefinik.time.report.responseData.ReportDTO;
 import schaefinik.time.timeentry.service.TimeEntryService;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -17,13 +18,13 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminReportController {
 
-  private final TimeEntryService timeEntryService;
+	private final TimeEntryService timeEntryService;
 
-  @GetMapping("/summary")
-  public List<ReportDTO> getSummary(
-    @RequestParam LocalDate start,
-    @RequestParam LocalDate end) {
-      return timeEntryService.getAggregatedReport(start, end);
-    }
+	@GetMapping("/summary")
+	public List<ReportDTO> getSummary(
+			@RequestParam LocalDate start,
+			@RequestParam LocalDate end) {
+		return timeEntryService.getAggregatedReport(start, end);
+	}
 
 }

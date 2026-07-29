@@ -20,34 +20,34 @@ import schaefinik.time.user.repository.TimeUserRepository;
 @Transactional
 public class AuthService {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-    private final JwtProperties jwtProperties;
-    private final TimeUserRepository userRepository;
+	private final AuthenticationManager authenticationManager;
+	private final JwtService jwtService;
+	private final JwtProperties jwtProperties;
+	private final TimeUserRepository userRepository;
 
-    public AuthResponse login(LoginRequest request) {
-        try {
-            // Spring Security prüft hier Passwort UND ob 'enabled' true ist
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.username(), request.password()));
+	public AuthResponse login(LoginRequest request) {
+		try {
+			// Spring Security prüft hier Passwort UND ob 'enabled' true ist
+			authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
-            TimeUser user = userRepository.findByUsername(request.username())
-                    .orElseThrow(() -> new BadCredentialsException("Benutzer nicht gefunden"));
+			TimeUser user = userRepository.findByUsername(request.username())
+					.orElseThrow(() -> new BadCredentialsException("Benutzer nicht gefunden"));
 
-            TimeUserPrincipal principal = new TimeUserPrincipal(user);
-            String token = jwtService.generateToken(principal);
+			TimeUserPrincipal principal = new TimeUserPrincipal(user);
+			String token = jwtService.generateToken(principal);
 
-            return new AuthResponse(
-                    token,
-                    "Bearer",
-                    jwtProperties.getExpirationMs(),
-                    user.getUsername(),
-                    user.getRole().name());
+			return new AuthResponse(
+					token,
+					"Bearer",
+					jwtProperties.getExpirationMs(),
+					user.getUsername(),
+					user.getRole().name());
 
-        } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Ungültiger Benutzername oder Passwort");
-        } catch (DisabledException e) {
-            throw new DisabledException("Ihr Account wurde deaktiviert. Bitte kontaktieren Sie einen Admin.");
-        }
-    }
+		} catch (BadCredentialsException e) {
+			throw new BadCredentialsException("Ungültiger Benutzername oder Passwort");
+		} catch (DisabledException e) {
+			throw new DisabledException("Ihr Account wurde deaktiviert. Bitte kontaktieren Sie einen Admin.");
+		}
+	}
 }

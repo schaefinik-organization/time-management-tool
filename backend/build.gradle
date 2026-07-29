@@ -74,7 +74,7 @@ tasks.register('devBuild') {
 // --- FRONTEND PIPELINE ---
 
 node {
-    version = '22.12.0'
+    version = '22.18.0'
     download = true
     nodeProjectDir = file("${project.projectDir}/frontend")
 }
@@ -112,6 +112,7 @@ sonar {
 }
 
 test {
+    jvmArgs '-XX:+EnableDynamicAgentLoading'
     finalizedBy jacocoTestReport
 }
 

@@ -1,16 +1,19 @@
 package schaefinik.time.config.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.GetMapping;
-import schaefinik.time.auth.controller.AuthController;
 
 @WebMvcTest(SpaForwardController.class)
+@EnableMethodSecurity
+@AutoConfigureDataJpa
+@ActiveProfiles("test")
 public class SpaForwardControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+	@Autowired
+	private MockMvc mockMvc;
 
 }

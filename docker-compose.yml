@@ -1,15 +1,39 @@
+version: '3.8'
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: time-mgmt-db
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app-backend-dev
+    restart: always
     environment:
-      POSTGRES_DB: timetracker
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dev_db:5432/time_dev_db
+      - SPRING_DATASOURCE_USERNAME=dev_user
+      - SPRING_DATASOURCE_PASSWORD=dev_secret_password
+    networks:
+      - proxy-network # Geändert!
+      - dev-internal
+    depends_on:
+      - dev_db
+
+  dev_db:
+    image: postgres:15-alpine
+    container_name: app-dev-db
+    restart: always
+    environment:
+      POSTGRES_DB: time_dev_db
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_secret_password
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - dev_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dev-internal
+
+networks:
+  proxy-network:
+    external: true
+  dev-internal:
 
 volumes:
-  pgdata:
+  dev_postgres_data:
