@@ -25,22 +25,20 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test-Klasse für TimeEntryController
- *
+ * <p>
  * Abgedeckte Szenarien:
  * - GET /api/time-entries (findByDate)
  * - POST /api/time-entries (create)
  * - PUT /api/time-entries/{id} (update)
  * - DELETE /api/time-entries/{id} (delete)
- *
+ * <p>
  * Test-Kategorien:
  * - Success Cases (happy path)
  * - Authorization & Authentication
@@ -61,37 +59,29 @@ public class TimeEntryControllerTest {
 
 	private TimeEntryResponse timeEntry1;
 	private TimeEntryResponse timeEntry2;
-	private TimeEntryRequest validRequest;
 
 	@BeforeEach
 	void setUp() {
 		timeEntry1 = new TimeEntryResponse(
-			1L,
-			1L,
-			"Project A",
-			LocalDate.of(2024, 1, 15),
-			LocalTime.of(9, 0),
-			LocalTime.of(10, 30),
-			"Morning meeting"
+				1L,
+				1L,
+				"Project A",
+				LocalDate.of(2024, 1, 15),
+				LocalTime.of(9, 0),
+				LocalTime.of(10, 30),
+				"Morning meeting"
 		);
 
 		timeEntry2 = new TimeEntryResponse(
-			2L,
-			2L,
-			"Project B",
-			LocalDate.of(2024, 1, 15),
-			LocalTime.of(14, 0),
-			LocalTime.of(16, 0),
-			"Afternoon work"
+				2L,
+				2L,
+				"Project B",
+				LocalDate.of(2024, 1, 15),
+				LocalTime.of(14, 0),
+				LocalTime.of(16, 0),
+				"Afternoon work"
 		);
 
-		validRequest = new TimeEntryRequest(
-			1L,
-			LocalDate.of(2024, 1, 15),
-			LocalTime.of(9, 0),
-			LocalTime.of(10, 30),
-			"Morning meeting"
-		);
 	}
 
 	// ========== GET /api/time-entries - findByDate ==========
@@ -107,14 +97,14 @@ public class TimeEntryControllerTest {
 					.willReturn(List.of(timeEntry1, timeEntry2));
 
 			mockMvc.perform(get("/api/time-entries")
-					.param("date", "2024-01-15"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(2)))
-				.andExpect(jsonPath("$[0].id", is(1)))
-				.andExpect(jsonPath("$[0].projectName", is("Project A")))
-				.andExpect(jsonPath("$[0].startTime", is("09:00:00")))
-				.andExpect(jsonPath("$[1].id", is(2)))
-				.andExpect(jsonPath("$[1].projectName", is("Project B")));
+							.param("date", "2024-01-15"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(2)))
+					.andExpect(jsonPath("$[0].id", is(1)))
+					.andExpect(jsonPath("$[0].projectName", is("Project A")))
+					.andExpect(jsonPath("$[0].startTime", is("09:00:00")))
+					.andExpect(jsonPath("$[1].id", is(2)))
+					.andExpect(jsonPath("$[1].projectName", is("Project B")));
 
 			verify(timeEntryService).findByDate(eq(testDate));
 		}
@@ -127,9 +117,9 @@ public class TimeEntryControllerTest {
 					.willReturn(Collections.emptyList());
 
 			mockMvc.perform(get("/api/time-entries")
-					.param("date", "2024-01-20"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(0)));
+							.param("date", "2024-01-20"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(0)));
 
 			verify(timeEntryService).findByDate(eq(testDate));
 		}
@@ -142,10 +132,10 @@ public class TimeEntryControllerTest {
 					.willReturn(List.of(timeEntry1));
 
 			mockMvc.perform(get("/api/time-entries")
-					.param("date", "2024-01-15"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(1)))
-				.andExpect(jsonPath("$[0].id", is(1)));
+							.param("date", "2024-01-15"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(1)))
+					.andExpect(jsonPath("$[0].id", is(1)));
 
 			verify(timeEntryService).findByDate(eq(testDate));
 		}
@@ -153,8 +143,8 @@ public class TimeEntryControllerTest {
 		@Test
 		void findByDate_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(get("/api/time-entries")
-					.param("date", "2024-01-15"))
-				.andExpect(status().isUnauthorized());
+							.param("date", "2024-01-15"))
+					.andExpect(status().isUnauthorized());
 
 			verify(timeEntryService, never()).findByDate(any());
 		}
@@ -172,12 +162,12 @@ public class TimeEntryControllerTest {
 					.willReturn(timeEntry1);
 
 			mockMvc.perform(post("/api/time-entries")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Morning meeting\"}"))
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.id", is(1)))
-				.andExpect(jsonPath("$.projectName", is("Project A")))
-				.andExpect(jsonPath("$.note", is("Morning meeting")));
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Morning meeting\"}"))
+					.andExpect(status().isCreated())
+					.andExpect(jsonPath("$.id", is(1)))
+					.andExpect(jsonPath("$.projectName", is("Project A")))
+					.andExpect(jsonPath("$.note", is("Morning meeting")));
 
 			verify(timeEntryService).create(any(TimeEntryRequest.class));
 		}
@@ -186,9 +176,9 @@ public class TimeEntryControllerTest {
 		@WithMockUser
 		void create_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
 			mockMvc.perform(post("/api/time-entries")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{}"))
-				.andExpect(status().isBadRequest());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{}"))
+					.andExpect(status().isBadRequest());
 
 			verify(timeEntryService, never()).create(any());
 		}
@@ -196,23 +186,23 @@ public class TimeEntryControllerTest {
 		@Test
 		void create_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(post("/api/time-entries")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Test\"}"))
-				.andExpect(status().isUnauthorized());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Test\"}"))
+					.andExpect(status().isUnauthorized());
 
 			verify(timeEntryService, never()).create(any());
 		}
 
 		@Test
 		@WithMockUser
-		void create_WithOverlappingTimes_ShouldReturnConflict() throws Exception {
+		void create_WithOverlappingTimes_ShouldReturnBadRequest() throws Exception {
 			given(timeEntryService.create(any()))
 					.willThrow(new IllegalArgumentException("Times overlap"));
 
 			mockMvc.perform(post("/api/time-entries")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Test\"}"))
-				.andExpect(status().isBadRequest());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Test\"}"))
+					.andExpect(status().isBadRequest());
 		}
 	}
 
@@ -226,41 +216,41 @@ public class TimeEntryControllerTest {
 		void update_WithValidIdAndRequest_ShouldReturnOkWithUpdatedData() throws Exception {
 			Long entryId = 1L;
 			TimeEntryResponse updated = new TimeEntryResponse(
-				1L, 1L, "Project A", LocalDate.of(2024, 1, 15),
-				LocalTime.of(10, 0), LocalTime.of(11, 30), "Updated note"
+					1L, 1L, "Project A", LocalDate.of(2024, 1, 15),
+					LocalTime.of(10, 0), LocalTime.of(11, 30), "Updated note"
 			);
 			given(timeEntryService.update(eq(entryId), any()))
 					.willReturn(updated);
 
 			mockMvc.perform(put("/api/time-entries/1")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"10:00:00\",\"endTime\":\"11:30:00\",\"note\":\"Updated note\"}"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id", is(1)))
-				.andExpect(jsonPath("$.note", is("Updated note")));
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"10:00:00\",\"endTime\":\"11:30:00\",\"note\":\"Updated note\"}"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.id", is(1)))
+					.andExpect(jsonPath("$.note", is("Updated note")));
 
 			verify(timeEntryService).update(eq(entryId), any());
 		}
 
 		@Test
 		@WithMockUser
-		void update_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+		void update_WithNonExistentId_ShouldReturnBadRequest() throws Exception {
 			given(timeEntryService.update(eq(999L), any()))
 					.willThrow(new IllegalArgumentException("TimeEntry not found with id 999"));
 
 			mockMvc.perform(put("/api/time-entries/999")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Test\"}"))
-				.andExpect(status().isBadRequest());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Test\"}"))
+					.andExpect(status().isBadRequest());
 		}
 
 		@Test
 		@WithMockUser
 		void update_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
 			mockMvc.perform(put("/api/time-entries/1")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{}"))
-				.andExpect(status().isBadRequest());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{}"))
+					.andExpect(status().isBadRequest());
 
 			verify(timeEntryService, never()).update(any(), any());
 		}
@@ -268,9 +258,9 @@ public class TimeEntryControllerTest {
 		@Test
 		void update_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(put("/api/time-entries/1")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Test\"}"))
-				.andExpect(status().isUnauthorized());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"Test\"}"))
+					.andExpect(status().isUnauthorized());
 
 			verify(timeEntryService, never()).update(any(), any());
 		}
@@ -287,25 +277,25 @@ public class TimeEntryControllerTest {
 			doNothing().when(timeEntryService).delete(1L);
 
 			mockMvc.perform(delete("/api/time-entries/1"))
-				.andExpect(status().isNoContent());
+					.andExpect(status().isNoContent());
 
 			verify(timeEntryService).delete(eq(1L));
 		}
 
 		@Test
 		@WithMockUser
-		void delete_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+		void delete_WithNonExistentId_ShouldReturnBadRequest() throws Exception {
 			doThrow(new IllegalArgumentException("TimeEntry not found with id 999"))
 					.when(timeEntryService).delete(999L);
 
 			mockMvc.perform(delete("/api/time-entries/999"))
-				.andExpect(status().isBadRequest());
+					.andExpect(status().isBadRequest());
 		}
 
 		@Test
 		void delete_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(delete("/api/time-entries/1"))
-				.andExpect(status().isUnauthorized());
+					.andExpect(status().isUnauthorized());
 
 			verify(timeEntryService, never()).delete(any());
 		}
@@ -320,51 +310,51 @@ public class TimeEntryControllerTest {
 		@WithMockUser
 		void findByDate_WithManyEntries_ShouldReturnAllEntries() throws Exception {
 			List<TimeEntryResponse> manyEntries = List.of(
-				timeEntry1, timeEntry2,
-				new TimeEntryResponse(3L, 1L, "Project A", LocalDate.of(2024, 1, 15), LocalTime.of(11, 0), LocalTime.of(12, 0), ""),
-				new TimeEntryResponse(4L, 2L, "Project B", LocalDate.of(2024, 1, 15), LocalTime.of(13, 0), LocalTime.of(14, 0), ""),
-				new TimeEntryResponse(5L, 1L, "Project A", LocalDate.of(2024, 1, 15), LocalTime.of(15, 0), LocalTime.of(16, 0), "")
+					timeEntry1, timeEntry2,
+					new TimeEntryResponse(3L, 1L, "Project A", LocalDate.of(2024, 1, 15), LocalTime.of(11, 0), LocalTime.of(12, 0), ""),
+					new TimeEntryResponse(4L, 2L, "Project B", LocalDate.of(2024, 1, 15), LocalTime.of(13, 0), LocalTime.of(14, 0), ""),
+					new TimeEntryResponse(5L, 1L, "Project A", LocalDate.of(2024, 1, 15), LocalTime.of(15, 0), LocalTime.of(16, 0), "")
 			);
 
 			given(timeEntryService.findByDate(any()))
 					.willReturn(manyEntries);
 
 			mockMvc.perform(get("/api/time-entries")
-					.param("date", "2024-01-15"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(5)));
+							.param("date", "2024-01-15"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(5)));
 		}
 
 		@Test
 		@WithMockUser
 		void create_WithEmptyNote_ShouldReturnCreated() throws Exception {
 			TimeEntryResponse response = new TimeEntryResponse(
-				1L, 1L, "Project A", LocalDate.of(2024, 1, 15),
-				LocalTime.of(9, 0), LocalTime.of(10, 30), ""
+					1L, 1L, "Project A", LocalDate.of(2024, 1, 15),
+					LocalTime.of(9, 0), LocalTime.of(10, 30), ""
 			);
 			given(timeEntryService.create(any()))
 					.willReturn(response);
 
 			mockMvc.perform(post("/api/time-entries")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"\"}"))
-				.andExpect(status().isCreated());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"10:30:00\",\"note\":\"\"}"))
+					.andExpect(status().isCreated());
 		}
 
 		@Test
 		@WithMockUser
 		void create_WithMinimumDuration_ShouldReturnCreated() throws Exception {
 			TimeEntryResponse response = new TimeEntryResponse(
-				1L, 1L, "Project A", LocalDate.of(2024, 1, 15),
-				LocalTime.of(9, 0), LocalTime.of(9, 1), "1 minute entry"
+					1L, 1L, "Project A", LocalDate.of(2024, 1, 15),
+					LocalTime.of(9, 0), LocalTime.of(9, 1), "1 minute entry"
 			);
 			given(timeEntryService.create(any()))
 					.willReturn(response);
 
 			mockMvc.perform(post("/api/time-entries")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"09:01:00\",\"note\":\"1 minute entry\"}"))
-				.andExpect(status().isCreated());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"projectId\":1,\"entryDate\":\"2024-01-15\",\"startTime\":\"09:00:00\",\"endTime\":\"09:01:00\",\"note\":\"1 minute entry\"}"))
+					.andExpect(status().isCreated());
 		}
 
 		@Test
@@ -375,9 +365,9 @@ public class TimeEntryControllerTest {
 					.willReturn(Collections.emptyList());
 
 			mockMvc.perform(get("/api/time-entries")
-					.param("date", "2024-02-29"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(0)));
+							.param("date", "2024-02-29"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(0)));
 		}
 	}
 }

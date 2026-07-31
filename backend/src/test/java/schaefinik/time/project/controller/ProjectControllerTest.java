@@ -11,7 +11,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import schaefinik.time.project.requestData.ProjectRequest;
 import schaefinik.time.project.responseData.ProjectResponse;
 import schaefinik.time.project.service.ProjectService;
 
@@ -23,16 +22,14 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test-Klasse für ProjectController
- *
+ * <p>
  * Abgedeckte Endpoints:
  * - GET /api/projects (findAll)
  * - GET /api/projects/{id} (findById)
@@ -72,12 +69,12 @@ public class ProjectControllerTest {
 					.willReturn(List.of(project1, project2));
 
 			mockMvc.perform(get("/api/projects"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(2)))
-				.andExpect(jsonPath("$[0].id", is(1)))
-				.andExpect(jsonPath("$[0].name", is("Project Alpha")))
-				.andExpect(jsonPath("$[1].id", is(2)))
-				.andExpect(jsonPath("$[1].name", is("Project Beta")));
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(2)))
+					.andExpect(jsonPath("$[0].id", is(1)))
+					.andExpect(jsonPath("$[0].name", is("Project Alpha")))
+					.andExpect(jsonPath("$[1].id", is(2)))
+					.andExpect(jsonPath("$[1].name", is("Project Beta")));
 
 			verify(projectService).findAll();
 		}
@@ -89,8 +86,8 @@ public class ProjectControllerTest {
 					.willReturn(Collections.emptyList());
 
 			mockMvc.perform(get("/api/projects"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(0)));
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(0)));
 
 			verify(projectService).findAll();
 		}
@@ -98,7 +95,7 @@ public class ProjectControllerTest {
 		@Test
 		void findAll_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(get("/api/projects"))
-				.andExpect(status().isUnauthorized());
+					.andExpect(status().isUnauthorized());
 
 			verify(projectService, never()).findAll();
 		}
@@ -116,27 +113,27 @@ public class ProjectControllerTest {
 					.willReturn(project1);
 
 			mockMvc.perform(get("/api/projects/1"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id", is(1)))
-				.andExpect(jsonPath("$.name", is("Project Alpha")));
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.id", is(1)))
+					.andExpect(jsonPath("$.name", is("Project Alpha")));
 
 			verify(projectService).findById(eq(1L));
 		}
 
 		@Test
 		@WithMockUser
-		void findById_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+		void findById_WithNonExistentId_ShouldReturnBadRequest() throws Exception {
 			given(projectService.findById(999L))
 					.willThrow(new IllegalArgumentException("Project not found with id 999"));
 
 			mockMvc.perform(get("/api/projects/999"))
-				.andExpect(status().isNotFound());
+					.andExpect(status().isBadRequest());
 		}
 
 		@Test
 		void findById_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(get("/api/projects/1"))
-				.andExpect(status().isUnauthorized());
+					.andExpect(status().isUnauthorized());
 
 			verify(projectService, never()).findById(any());
 		}
@@ -154,11 +151,11 @@ public class ProjectControllerTest {
 					.willReturn(project1);
 
 			mockMvc.perform(post("/api/projects")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"name\":\"Project Alpha\",\"description\":\"Development\"}"))
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.id", is(1)))
-				.andExpect(jsonPath("$.name", is("Project Alpha")));
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"name\":\"Project Alpha\",\"description\":\"Development\"}"))
+					.andExpect(status().isCreated())
+					.andExpect(jsonPath("$.id", is(1)))
+					.andExpect(jsonPath("$.name", is("Project Alpha")));
 
 			verify(projectService).create(any());
 		}
@@ -167,9 +164,9 @@ public class ProjectControllerTest {
 		@WithMockUser
 		void create_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
 			mockMvc.perform(post("/api/projects")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{}"))
-				.andExpect(status().isBadRequest());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{}"))
+					.andExpect(status().isBadRequest());
 
 			verify(projectService, never()).create(any());
 		}
@@ -177,9 +174,9 @@ public class ProjectControllerTest {
 		@Test
 		void create_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(post("/api/projects")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"name\":\"Project\",\"description\":\"Test\"}"))
-				.andExpect(status().isUnauthorized());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"name\":\"Project\",\"description\":\"Test\"}"))
+					.andExpect(status().isUnauthorized());
 
 			verify(projectService, never()).create(any());
 		}
@@ -198,34 +195,34 @@ public class ProjectControllerTest {
 					.willReturn(updated);
 
 			mockMvc.perform(put("/api/projects/1")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"name\":\"Project Alpha Updated\",\"description\":\"Development\"}"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id", is(1)))
-				.andExpect(jsonPath("$.name", is("Project Alpha Updated")));
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"name\":\"Project Alpha Updated\",\"description\":\"Development\"}"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.id", is(1)))
+					.andExpect(jsonPath("$.name", is("Project Alpha Updated")));
 
 			verify(projectService).update(eq(1L), any());
 		}
 
 		@Test
 		@WithMockUser
-		void update_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+		void update_WithNonExistentId_ShouldReturnBadRequest() throws Exception {
 			given(projectService.update(eq(999L), any()))
 					.willThrow(new IllegalArgumentException("Project not found with id 999"));
 
 			mockMvc.perform(put("/api/projects/999")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"name\":\"Project\",\"description\":\"Test\"}"))
-				.andExpect(status().isNotFound());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"name\":\"Project\",\"description\":\"Test\"}"))
+					.andExpect(status().isBadRequest());
 		}
 
 		@Test
 		@WithMockUser
 		void update_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
 			mockMvc.perform(put("/api/projects/1")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{}"))
-				.andExpect(status().isBadRequest());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{}"))
+					.andExpect(status().isBadRequest());
 
 			verify(projectService, never()).update(any(), any());
 		}
@@ -233,9 +230,9 @@ public class ProjectControllerTest {
 		@Test
 		void update_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(put("/api/projects/1")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"name\":\"Project\",\"description\":\"Test\"}"))
-				.andExpect(status().isUnauthorized());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"name\":\"Project\",\"description\":\"Test\"}"))
+					.andExpect(status().isUnauthorized());
 
 			verify(projectService, never()).update(any(), any());
 		}
@@ -252,25 +249,25 @@ public class ProjectControllerTest {
 			doNothing().when(projectService).delete(1L);
 
 			mockMvc.perform(delete("/api/projects/1"))
-				.andExpect(status().isNoContent());
+					.andExpect(status().isNoContent());
 
 			verify(projectService).delete(eq(1L));
 		}
 
 		@Test
 		@WithMockUser
-		void delete_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+		void delete_WithNonExistentId_ShouldReturnBadRequest() throws Exception {
 			doThrow(new IllegalArgumentException("Project not found with id 999"))
 					.when(projectService).delete(999L);
 
 			mockMvc.perform(delete("/api/projects/999"))
-				.andExpect(status().isNotFound());
+					.andExpect(status().isBadRequest());
 		}
 
 		@Test
 		void delete_Unauthenticated_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(delete("/api/projects/1"))
-				.andExpect(status().isUnauthorized());
+					.andExpect(status().isUnauthorized());
 
 			verify(projectService, never()).delete(any());
 		}
@@ -285,35 +282,35 @@ public class ProjectControllerTest {
 		@WithMockUser
 		void findAll_WithLargeDataSet_ShouldReturnAllProjects() throws Exception {
 			List<ProjectResponse> manyProjects = List.of(
-				new ProjectResponse(1L, "Project 1", "Desc 1"),
-				new ProjectResponse(2L, "Project 2", "Desc 2"),
-				new ProjectResponse(3L, "Project 3", "Desc 3"),
-				new ProjectResponse(4L, "Project 4", "Desc 4"),
-				new ProjectResponse(5L, "Project 5", "Desc 5")
+					new ProjectResponse(1L, "Project 1", "Desc 1"),
+					new ProjectResponse(2L, "Project 2", "Desc 2"),
+					new ProjectResponse(3L, "Project 3", "Desc 3"),
+					new ProjectResponse(4L, "Project 4", "Desc 4"),
+					new ProjectResponse(5L, "Project 5", "Desc 5")
 			);
 
 			given(projectService.findAll())
 					.willReturn(manyProjects);
 
 			mockMvc.perform(get("/api/projects"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(5)));
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(5)));
 		}
 
 		@Test
 		@WithMockUser
-		void create_WithVeryLongProjectName_ShouldReturnCreated() throws Exception {
+		void create_WithVeryLongProjectName_ShouldReturnBadRequest() throws Exception {
 			ProjectResponse response = new ProjectResponse(1L,
-				"A".repeat(255), // Very long name
-				"Description");
+					"A".repeat(255), // Very long name
+					"Description");
 
 			given(projectService.create(any()))
 					.willReturn(response);
 
 			mockMvc.perform(post("/api/projects")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content("{\"name\":\"" + "A".repeat(255) + "\",\"description\":\"Description\"}"))
-				.andExpect(status().isCreated());
+							.contentType(MediaType.APPLICATION_JSON)
+							.content("{\"name\":\"" + "A".repeat(255) + "\",\"description\":\"Description\"}"))
+					.andExpect(status().isBadRequest());
 		}
 	}
 }

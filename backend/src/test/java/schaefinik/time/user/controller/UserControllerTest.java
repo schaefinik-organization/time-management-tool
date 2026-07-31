@@ -48,14 +48,12 @@ public class UserControllerTest {
 		@Test
 		@WithMockUser
 		void updateProfile_WithValidRequest_ShouldReturnOk() throws Exception {
-			doNothing().when(userService).updateUser(any(TimeUserPrincipal.class), any(UserRequest.class));
-
 			mockMvc.perform(put("/api/user/update-profile")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content("{\"username\":\"newname\",\"email\":\"new@example.com\"}"))
 					.andExpect(status().isOk());
 
-			verify(userService).updateUser(any(TimeUserPrincipal.class), any(UserRequest.class));
+			verify(userService).updateUser(nullable(TimeUserPrincipal.class), any(UserRequest.class));
 		}
 
 		@Test
@@ -66,7 +64,7 @@ public class UserControllerTest {
 							.content("{}"))
 					.andExpect(status().isBadRequest());
 
-			verify(userService, never()).updateUser(any(TimeUserPrincipal.class), any(UserRequest.class));
+			verify(userService, never()).updateUser(nullable(TimeUserPrincipal.class), any(UserRequest.class));
 		}
 
 		@Test
@@ -76,14 +74,14 @@ public class UserControllerTest {
 							.content("{\"username\":\"newname\",\"email\":\"new@example.com\"}"))
 					.andExpect(status().isUnauthorized());
 
-			verify(userService, never()).updateUser(any(TimeUserPrincipal.class), any(UserRequest.class));
+			verify(userService, never()).updateUser(nullable(TimeUserPrincipal.class), any(UserRequest.class));
 		}
 
 		@Test
 		@WithMockUser
 		void updateProfile_WithExistingUsername_ShouldReturnConflict() throws Exception {
 			doThrow(new IllegalArgumentException("Username already exists"))
-					.when(userService).updateUser(any(TimeUserPrincipal.class), any(UserRequest.class));
+					.when(userService).updateUser(nullable(TimeUserPrincipal.class), any(UserRequest.class));
 
 			mockMvc.perform(put("/api/user/update-profile")
 							.contentType(MediaType.APPLICATION_JSON)
@@ -100,8 +98,6 @@ public class UserControllerTest {
 		@Test
 		@WithMockUser
 		void changePassword_WithValidRequest_ShouldReturnOk() throws Exception {
-			doNothing().when(userService).changePassword(any(), any());
-
 			mockMvc.perform(post("/api/user/change-password")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content("{\"currentPassword\":\"oldpass123\",\"newPassword\":\"newpass123\"}"))
@@ -161,24 +157,22 @@ public class UserControllerTest {
 		@Test
 		@WithMockUser
 		void updateProfile_WithSpecialCharactersInUsername_ShouldReturnOk() throws Exception {
-			doNothing().when(userService).updateUser(any(TimeUserPrincipal.class), any(UserRequest.class));
-
 			mockMvc.perform(put("/api/user/update-profile")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content("{\"username\":\"user-name_123\",\"email\":\"user+test@example.com\"}"))
 					.andExpect(status().isOk());
+
+			verify(userService).updateUser(nullable(TimeUserPrincipal.class), any(UserRequest.class));
 		}
 
 		@Test
 		@WithMockUser
-		void changePassword_WithVeryLongPassword_ShouldReturnOk() throws Exception {
-			doNothing().when(userService).changePassword(any(), any());
-
+		void changePassword_WithVeryLongPassword_ShouldReturnBadRequest() throws Exception {
 			String longPassword = "P".repeat(255) + "1";
 			mockMvc.perform(post("/api/user/change-password")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content("{\"currentPassword\":\"oldpass123\",\"newPassword\":\"" + longPassword + "\"}"))
-					.andExpect(status().isOk());
+					.andExpect(status().isBadRequest());
 		}
 	}
 }

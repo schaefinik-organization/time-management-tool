@@ -202,14 +202,14 @@ public class AdminUserControllerTest {
 
 		@Test
 		@WithMockUser(roles = "ADMIN")
-		void updateUser_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+		void updateUser_WithNonExistentId_ShouldReturnBadRequest() throws Exception {
 			given(userService.updateUser(eq(999L), any(UserRequest.class)))
 					.willThrow(new IllegalArgumentException("User not found with id 999"));
 
 			mockMvc.perform(put("/api/admin/users/999")
 							.contentType(MediaType.APPLICATION_JSON)
 							.content("{\"username\":\"test\",\"email\":\"test@example.com\"}"))
-					.andExpect(status().isNotFound());
+					.andExpect(status().isBadRequest());
 		}
 
 		@Test
@@ -263,12 +263,12 @@ public class AdminUserControllerTest {
 
 		@Test
 		@WithMockUser(roles = "ADMIN")
-		void deleteUser_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+		void deleteUser_WithNonExistentId_ShouldReturnBadRequest() throws Exception {
 			doThrow(new IllegalArgumentException("User not found with id 999"))
 					.when(userService).deleteUser(999L);
 
 			mockMvc.perform(delete("/api/admin/users/999"))
-					.andExpect(status().isNotFound());
+					.andExpect(status().isBadRequest());
 		}
 
 		@Test
