@@ -14,8 +14,8 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "app.jwt")
 public class JwtProperties {
 
-  @NotBlank
-  private String secret;
+	@NotBlank
+	private String secret;
 
-  private long expirationMs;
+	private long expirationMs;
 }

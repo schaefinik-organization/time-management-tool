@@ -69,7 +69,7 @@ tasks.named('sonar') {
 }
 
 node {
-    version = '22.12.0'
+    version = '22.18.0'
     download = true
     nodeProjectDir = file("${project.projectDir}/frontend")
 }
@@ -132,6 +132,7 @@ sonar {
 
 test {
     dependsOn 'testFrontend'
+    jvmArgs '-XX:+EnableDynamicAgentLoading'
     finalizedBy jacocoTestReport
 }
 
@@ -168,6 +169,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.h2database:h2'
-    
+
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
