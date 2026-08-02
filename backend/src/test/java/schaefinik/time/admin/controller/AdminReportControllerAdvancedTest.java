@@ -18,9 +18,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -32,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * ADVANCED EXAMPLE: AdminReportControllerTest with Exception Handling
- *
+ * <p>
  * This test class demonstrates best practices for:
  * - Response Body Validation (JSON Path testing)
  * - Service Call Verification with exact parameters
@@ -71,10 +69,10 @@ public class AdminReportControllerAdvancedTest {
 		 * Test: GET /api/admin/reports/summary with valid dates
 		 * Expected: 200 OK with 2 ReportDTOs
 		 * Verifies:
-		 *   - Response status is OK
-		 *   - Response body contains correct number of items
-		 *   - Each item has correct field values
-		 *   - Service is called with exact dates
+		 * - Response status is OK
+		 * - Response body contains correct number of items
+		 * - Each item has correct field values
+		 * - Service is called with exact dates
 		 */
 		@Test
 		@WithMockUser(roles = "ADMIN")
@@ -87,24 +85,24 @@ public class AdminReportControllerAdvancedTest {
 
 			// Act & Assert
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isOk())
-				// Verify JSON structure
-				.andExpect(jsonPath("$", hasSize(2)))
-				// Verify first report
-				.andExpect(jsonPath("$[0].username", is("John Doe")))
-				.andExpect(jsonPath("$[0].projectName", is("Project A")))
-				.andExpect(jsonPath("$[0].totalMinutes", is(480)))
-				// Verify second report
-				.andExpect(jsonPath("$[1].username", is("Jane Smith")))
-				.andExpect(jsonPath("$[1].projectName", is("Project B")))
-				.andExpect(jsonPath("$[1].totalMinutes", is(360)));
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isOk())
+					// Verify JSON structure
+					.andExpect(jsonPath("$", hasSize(2)))
+					// Verify first report
+					.andExpect(jsonPath("$[0].username", is("John Doe")))
+					.andExpect(jsonPath("$[0].projectName", is("Project A")))
+					.andExpect(jsonPath("$[0].totalMinutes", is(480)))
+					// Verify second report
+					.andExpect(jsonPath("$[1].username", is("Jane Smith")))
+					.andExpect(jsonPath("$[1].projectName", is("Project B")))
+					.andExpect(jsonPath("$[1].totalMinutes", is(360)));
 
 			// Verify service was called with exact parameters
 			verify(timeEntryService).getAggregatedReport(
-				eq(startDate),
-				eq(endDate)
+					eq(startDate),
+					eq(endDate)
 			);
 		}
 
@@ -112,9 +110,9 @@ public class AdminReportControllerAdvancedTest {
 		 * Test: GET /api/admin/reports/summary when no data exists
 		 * Expected: 200 OK with empty list
 		 * Verifies:
-		 *   - Response status is OK
-		 *   - Response body is empty list (not null)
-		 *   - Service is called with correct parameters
+		 * - Response status is OK
+		 * - Response body is empty list (not null)
+		 * - Service is called with correct parameters
 		 */
 		@Test
 		@WithMockUser(roles = "ADMIN")
@@ -127,11 +125,11 @@ public class AdminReportControllerAdvancedTest {
 
 			// Act & Assert
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-06-01")
-					.param("end", "2024-06-30"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(0)))
-				.andExpect(jsonPath("$").isArray());
+							.param("start", "2024-06-01")
+							.param("end", "2024-06-30"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(0)))
+					.andExpect(jsonPath("$").isArray());
 
 			verify(timeEntryService).getAggregatedReport(eq(startDate), eq(endDate));
 		}
@@ -149,11 +147,11 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of(report1));
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-02-01")
-					.param("end", "2024-02-29"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(1)))
-				.andExpect(jsonPath("$[0].username", is("John Doe")));
+							.param("start", "2024-02-01")
+							.param("end", "2024-02-29"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(1)))
+					.andExpect(jsonPath("$[0].username", is("John Doe")));
 
 			verify(timeEntryService).getAggregatedReport(eq(startDate), eq(endDate));
 		}
@@ -170,10 +168,10 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of(report1));
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-03-15")
-					.param("end", "2024-03-15"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(1)));
+							.param("start", "2024-03-15")
+							.param("end", "2024-03-15"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(1)));
 
 			verify(timeEntryService).getAggregatedReport(eq(sameDate), eq(sameDate));
 		}
@@ -192,9 +190,9 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of(report1));
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isOk());
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isOk());
 
 			verify(timeEntryService).getAggregatedReport(any(), any());
 		}
@@ -208,9 +206,9 @@ public class AdminReportControllerAdvancedTest {
 		@WithMockUser(roles = "USER")
 		void getSummary_WithUserRole_ShouldReturnForbidden() throws Exception {
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isForbidden());
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isForbidden());
 
 			// IMPORTANT: Verify service was NOT called
 			verify(timeEntryService, never()).getAggregatedReport(any(), any());
@@ -224,9 +222,9 @@ public class AdminReportControllerAdvancedTest {
 		@Test
 		void getSummary_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isUnauthorized());
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isUnauthorized());
 
 			verify(timeEntryService, never()).getAggregatedReport(any(), any());
 		}
@@ -239,9 +237,9 @@ public class AdminReportControllerAdvancedTest {
 		@WithMockUser(roles = "MANAGER")
 		void getSummary_WithManagerRole_ShouldReturnForbidden() throws Exception {
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isForbidden());
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isForbidden());
 
 			verify(timeEntryService, never()).getAggregatedReport(any(), any());
 		}
@@ -263,15 +261,15 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of(detailedReport));
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].username", is("Alice Johnson")))
-				.andExpect(jsonPath("$[0].projectName", is("DevOps Infrastructure")))
-				.andExpect(jsonPath("$[0].totalMinutes", is(720)))
-				.andExpect(jsonPath("$[0]", hasKey("username")))
-				.andExpect(jsonPath("$[0]", hasKey("projectName")))
-				.andExpect(jsonPath("$[0]", hasKey("totalMinutes")));
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$[0].username", is("Alice Johnson")))
+					.andExpect(jsonPath("$[0].projectName", is("DevOps Infrastructure")))
+					.andExpect(jsonPath("$[0].totalMinutes", is(720)))
+					.andExpect(jsonPath("$[0]", hasKey("username")))
+					.andExpect(jsonPath("$[0]", hasKey("projectName")))
+					.andExpect(jsonPath("$[0]", hasKey("totalMinutes")));
 		}
 
 		/**
@@ -285,12 +283,12 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of(report1, report2));
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(APPLICATION_JSON))
-				.andExpect(jsonPath("$").isArray())
-				.andExpect(jsonPath("$").isNotEmpty());
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isOk())
+					.andExpect(content().contentType(APPLICATION_JSON))
+					.andExpect(jsonPath("$").isArray())
+					.andExpect(jsonPath("$").isNotEmpty());
 		}
 	}
 
@@ -305,11 +303,11 @@ public class AdminReportControllerAdvancedTest {
 		@WithMockUser(roles = "ADMIN")
 		void getSummary_WithLargeDataSet_ShouldReturnAllReports() throws Exception {
 			List<ReportDTO> largeDataSet = List.of(
-				new ReportDTO("User1", "ProjectA", 480L),
-				new ReportDTO("User2", "ProjectB", 360L),
-				new ReportDTO("User3", "ProjectC", 540L),
-				new ReportDTO("User4", "ProjectD", 420L),
-				new ReportDTO("User5", "ProjectE", 600L)
+					new ReportDTO("User1", "ProjectA", 480L),
+					new ReportDTO("User2", "ProjectB", 360L),
+					new ReportDTO("User3", "ProjectC", 540L),
+					new ReportDTO("User4", "ProjectD", 420L),
+					new ReportDTO("User5", "ProjectE", 600L)
 			);
 			LocalDate startDate = LocalDate.of(2024, 1, 1);
 			LocalDate endDate = LocalDate.of(2024, 12, 31);
@@ -317,13 +315,13 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(largeDataSet);
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-12-31"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(5)))
-				.andExpect(jsonPath("$[0].username", is("User1")))
-				.andExpect(jsonPath("$[4].username", is("User5")))
-				.andExpect(jsonPath("$[4].totalMinutes", is(600)));
+							.param("start", "2024-01-01")
+							.param("end", "2024-12-31"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$", hasSize(5)))
+					.andExpect(jsonPath("$[0].username", is("User1")))
+					.andExpect(jsonPath("$[4].username", is("User5")))
+					.andExpect(jsonPath("$[4].totalMinutes", is(600)));
 
 			verify(timeEntryService).getAggregatedReport(eq(startDate), eq(endDate));
 		}
@@ -341,9 +339,9 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(Collections.emptyList());
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2000-01-01")
-					.param("end", "2000-12-31"))
-				.andExpect(status().isOk());
+							.param("start", "2000-01-01")
+							.param("end", "2000-12-31"))
+					.andExpect(status().isOk());
 
 			verify(timeEntryService).getAggregatedReport(eq(startDate), eq(endDate));
 		}
@@ -361,9 +359,9 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(Collections.emptyList());
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2099-01-01")
-					.param("end", "2099-12-31"))
-				.andExpect(status().isOk());
+							.param("start", "2099-01-01")
+							.param("end", "2099-12-31"))
+					.andExpect(status().isOk());
 
 			verify(timeEntryService).getAggregatedReport(eq(startDate), eq(endDate));
 		}
@@ -380,10 +378,10 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of(zeroReport));
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].totalMinutes", is(0)));
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$[0].totalMinutes", is(0)));
 		}
 
 		/**
@@ -398,10 +396,10 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of(largeReport));
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].totalMinutes", is(999999999)));
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$[0].totalMinutes", is(999999999)));
 		}
 	}
 
@@ -420,14 +418,14 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of());
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-07-01")
-					.param("end", "2024-07-31"))
-				.andExpect(status().isOk());
+							.param("start", "2024-07-01")
+							.param("end", "2024-07-31"))
+					.andExpect(status().isOk());
 
 			// IMPORTANT: Use eq() to verify exact dates, not any()
 			verify(timeEntryService).getAggregatedReport(
-				eq(LocalDate.of(2024, 7, 1)),
-				eq(LocalDate.of(2024, 7, 31))
+					eq(LocalDate.of(2024, 7, 1)),
+					eq(LocalDate.of(2024, 7, 31))
 			);
 		}
 
@@ -442,12 +440,11 @@ public class AdminReportControllerAdvancedTest {
 					.willReturn(List.of());
 
 			mockMvc.perform(get("/api/admin/reports/summary")
-					.param("start", "2024-01-01")
-					.param("end", "2024-01-31"))
-				.andExpect(status().isOk());
+							.param("start", "2024-01-01")
+							.param("end", "2024-01-31"))
+					.andExpect(status().isOk());
 
 			verify(timeEntryService).getAggregatedReport(any(), any());
 		}
 	}
 }
-
