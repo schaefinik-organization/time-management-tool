@@ -25,7 +25,10 @@ jobs:
         uses: sonarsource/sonarqube-scan-action@master
         with:
           args: >
-            -Dsonar.projectKey=time-management-tool
+            -Dsonar.projectKey=time-management-tool \
+                        -Dsonar.projectName="Mein Time Management Tool Backend" \
+                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.token=$SONAR_TOKEN
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -67,7 +70,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /pfad/zum/projektordner/auf/dem/server
+            cd /mnt/raid_pool/configs/GitHub-runner
             
             # .env Datei dynamisch aus GitHub Secrets generieren
             echo "APP_ENV=development" > .env
@@ -90,7 +93,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /pfad/zum/projektordner/auf/dem/server
+            cd /mnt/raid_pool/configs/GitHub-runner-prod
             
             # .env Datei dynamisch aus GitHub Secrets generieren
             echo "APP_ENV=production" > .env
