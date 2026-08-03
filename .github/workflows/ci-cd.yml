@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-# Globale Umgebungsvariablen für die Docker Registry
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -50,10 +49,6 @@ jobs:
             -Dsonar.host.url=$SONAR_HOST_URL \
             -Dsonar.token=$SONAR_TOKEN
 
-      # ---------------------------------------------------
-      # NEU: Docker Image bauen und in GHCR pushen
-      # (Läuft nur bei direkten Pushes oder Merges, NICHT bei PRs)
-      # ---------------------------------------------------
       - name: Login in GitHub Container Registry
         if: github.event_name == 'push'
         uses: docker/login-action@v3
@@ -76,16 +71,11 @@ jobs:
         if: github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
-          # HINWEIS: Falls dein Dockerfile im Ordner "backend" liegt,
-          # ändere dies zu: context: ./backend
-          context: .
+          context: ./backend
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  # ---------------------------------------------------
-  # JOB 2: Deployment auf DEV (Nur bei Push auf develop)
-  # ---------------------------------------------------
   deploy-dev:
     needs: build-and-analyze
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
@@ -107,9 +97,6 @@ jobs:
             docker compose pull
             docker compose up -d --remove-orphans
 
-  # ---------------------------------------------------
-  # JOB 3: Deployment auf PROD (Nur bei Push auf main)
-  # ---------------------------------------------------
   deploy-prod:
     needs: build-and-analyze
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
