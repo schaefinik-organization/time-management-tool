@@ -3,8 +3,8 @@ package schaefinik.time.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import schaefinik.time.exception.TimeEntryOverlapException;
-import schaefinik.time.model.ProjectModel;
+import schaefinik.time.exception.InvalidTimeRangeException;
+import schaefinik.time.exception.OverlappingTimeException;
 import schaefinik.time.model.TimeEntryModel;
 import schaefinik.time.model.TimeUserModel;
 import schaefinik.time.properties.TimeEntryProperties;
@@ -38,46 +38,32 @@ public class TimeEntryService {
 				.toList();
 	}
 
-	public TimeEntryResponse create(TimeEntryRequest request) {
-		validateTimeRange(request);
-		checkForOverlap(request, null);
-
-		TimeUserModel user = userService.getCurrentUser();
-		ProjectModel project = projectService.getProject(request.projectId());
-
-		if (!request.endTime().isAfter(request.startTime())) {
-			throw new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_END_TIME_BEFORE_START_TIME);
-		}
-
+	@Transactional
+	public TimeEntryResponse createOrUpdateTimeEntry(TimeEntryRequest request) {
 		TimeEntryModel entry = TimeEntryModel.builder()
-				.user(user)
-				.project(project)
-				.entryDate(request.entryDate())
+				.project(projectService.getProject(request.projectId()))
+				.user(userService.getCurrentUser())
 				.startTime(request.startTime())
 				.endTime(request.endTime())
 				.note(request.note())
 				.build();
 
-		TimeEntryModel saved = timeEntryRepository.save(entry);
+		if (!entry.getStartTime().isBefore(entry.getEndTime())) {
+			throw new InvalidTimeRangeException(TimeEntryProperties.TIME_ENTRY_END_TIME_BEFORE_START_TIME);
+		}
 
-		return mapToResponse(saved);
-	}
+		boolean hasOverlap = timeEntryRepository.existsOverlappingEntry(
+				entry.getUser().getId(),
+				entry.getStartTime(),
+				entry.getEndTime(),
+				entry.getId()
+		);
 
-	public TimeEntryResponse update(Long id, TimeEntryRequest request) {
-		validateTimeRange(request);
+		if (hasOverlap) {
+			throw new OverlappingTimeException(TimeEntryProperties.TIME_ENTRY_OVERLAP);
+		}
 
-		TimeEntryModel entry = getTimeEntry(id);
-		ProjectModel project = projectService.getProject(request.projectId());
-		checkForOverlap(request, id);
-
-		entry.setProject(project);
-		entry.setEntryDate(request.entryDate());
-		entry.setStartTime(request.startTime());
-		entry.setEndTime(request.endTime());
-		entry.setNote(request.note());
-
-		TimeEntryModel updated = timeEntryRepository.save(entry);
-		return mapToResponse(updated);
+		return mapToResponse(timeEntryRepository.save(entry));
 	}
 
 	public void delete(Long id) {
@@ -90,37 +76,11 @@ public class TimeEntryService {
 		return timeEntryRepository.getAggregatedReport(start, end);
 	}
 
-	private void validateTimeRange(TimeEntryRequest request) {
-		if (request.startTime() == null) {
-			throw new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_START_TIME_NULL);
-		}
-
-		if (!request.endTime().isAfter(request.startTime())) {
-			throw new IllegalArgumentException(TimeEntryProperties.TIME_ENTRY_END_TIME_BEFORE_START_TIME);
-		}
-	}
-
-	private void checkForOverlap(TimeEntryRequest request, Long currentEntryId) {
-		List<TimeEntryModel> entriesForDay = timeEntryRepository.findByEntryDate(request.entryDate());
-		
-		boolean overlaps = entriesForDay.stream()
-				.filter(existing -> !existing.getId().equals(currentEntryId))
-				.anyMatch(existing ->
-						request.startTime().isBefore(existing.getEndTime()) &&
-								request.endTime().isAfter(existing.getStartTime()));
-
-		if (overlaps) {
-			throw new TimeEntryOverlapException(
-					TimeEntryProperties.TIME_ENTRY_OVERLAP);
-		}
-	}
-
 	private TimeEntryResponse mapToResponse(TimeEntryModel entry) {
 		return new TimeEntryResponse(
 				entry.getId(),
 				entry.getProject().getId(),
 				entry.getProject().getName(),
-				entry.getEntryDate(),
 				entry.getStartTime(),
 				entry.getEndTime(),
 				entry.getNote());

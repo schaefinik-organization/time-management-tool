@@ -1,0 +1,77 @@
+name: 🚀 User Story / Feature
+description: Reiche ein neues Feature oder eine User Story für das Time Management Tool ein.
+title: "[FEATURE] <Titel hier eingeben>"
+labels: [ "enhancement", "user-story" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Neue User Story
+        Bitte fülle die Felder so präzise wie möglich aus, um die Implementierung in Spring Boot und Vue.js optimal planen zu können.
+
+  - type: dropdown
+    id: epic
+    attributes:
+      label: 📂 Epic / Themenbereich
+      description: Zu welcher Phase gehört dieses Feature?
+      options:
+        - "Epic 1: Rollen & Projektzuweisung"
+        - "Epic 2: Zeiterfassung & Overlap-Schutz"
+        - "Epic 3: Dashboards & Auswertungen"
+        - "Epic 4: Exporte & Reports"
+        - "Epic 5: Billing & Finanzen"
+        - "Infrastruktur / CI/CD"
+    validations:
+      required: true
+
+  - type: input
+    id: role
+    attributes:
+      label: 👤 Als... (Rolle)
+      placeholder: "z.B. Manager, Admin, User"
+    validations:
+      required: true
+
+  - type: input
+    id: goal
+    attributes:
+      label: 🎯 möchte ich... (Ziel)
+      placeholder: "z.B. neue Projekte anlegen können"
+    validations:
+      required: true
+
+  - type: input
+    id: reason
+    attributes:
+      label: 💡 damit... (Mehrwert/Grund)
+      placeholder: "z.B. ich meine Arbeitsbereiche strukturieren kann"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: ✅ Akzeptanzkriterien
+      description: Was muss erfüllt sein, damit diese Story als "Done" gilt? (Bitte als Checkliste)
+      value: |
+        - [ ] Kriterium 1
+        - [ ] Kriterium 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: 🛠️ Technische Notizen & Architektur (Optional)
+      description: Ideen zur Implementierung (Spring Boot Endpoints, Vue Komponenten, Datenbankanpassungen)
+      placeholder: "z.B. Nutze LocalDateTime für die Overlap-Validation; Erstelle einen neuen Vue-Router-Guard..."
+
+  - type: checkboxes
+    id: dod
+    attributes:
+      label: 🏁 Definition of Done (DoD)
+      options:
+        - label: Unit-Tests (JUnit/Mockito) sind geschrieben und grün
+        - label: Frontend-Integration ist lokal erfolgreich getestet
+        - label: Code ist formatiert und erfüllt die Linting-Regeln
+        - label: Docker-Container bauen erfolgreich

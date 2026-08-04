@@ -1,14 +1,12 @@
 package schaefinik.time.responseData;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public record TimeEntryResponse(
 		Long id,
 		Long projectId,
 		String projectName,
-		LocalDate entryDate,
-		LocalTime startTime,
-		LocalTime endTime,
+		LocalDateTime startTime,
+		LocalDateTime endTime,
 		String note) {
 }

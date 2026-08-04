@@ -26,12 +26,12 @@ public class TimeEntryController {
 
 	@PostMapping(produces = "application/json")
 	public TimeEntryResponse create(@Valid @RequestBody TimeEntryRequest request) {
-		return timeEntryService.create(request);
+		return timeEntryService.createOrUpdateTimeEntry(request);
 	}
 
 	@PutMapping(value = "/{id}", produces = "application/json")
 	public TimeEntryResponse update(@PathVariable Long id, @Valid @RequestBody TimeEntryRequest request) {
-		return timeEntryService.update(id, request);
+		return timeEntryService.createOrUpdateTimeEntry(request);
 	}
 
 	@DeleteMapping(value = "/{id}", produces = "application/json")

@@ -3,9 +3,8 @@ package schaefinik.time.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @Table(name = "time_entries")
@@ -29,18 +28,15 @@ public class TimeEntryModel {
 	private ProjectModel project;
 
 	@Column(nullable = false)
-	private LocalDate entryDate;
+	private LocalDateTime startTime;
 
 	@Column(nullable = false)
-	private LocalTime startTime;
-
-	@Column(nullable = false)
-	private LocalTime endTime;
+	private LocalDateTime endTime;
 
 	@Column(length = 500)
 	private String note;
 
 	@Column(nullable = false)
 	@Builder.Default
-	private LocalDateTime createdAt = LocalDateTime.now();
+	private LocalDateTime createdAt = LocalDateTime.now(Clock.systemDefaultZone());
 }
