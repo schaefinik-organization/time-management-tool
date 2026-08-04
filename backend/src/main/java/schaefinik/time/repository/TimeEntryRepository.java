@@ -1,0 +1,29 @@
+package schaefinik.time.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import schaefinik.time.model.TimeEntryModel;
+import schaefinik.time.responseData.ReportDTO;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public interface TimeEntryRepository extends JpaRepository<TimeEntryModel, Long> {
+
+	List<TimeEntryModel> findByUserIdAndEntryDate(Long userId, LocalDate entryDate);
+
+	List<TimeEntryModel> findByEntryDate(LocalDate entryDate);
+
+	@Query("""
+			SELECT new ReportDTO(u.username, p.name, SUM(
+			(EXTRACT(HOUR FROM t.endTime) * 60 + EXTRACT(MINUTE FROM t.endTime)) - 
+			(EXTRACT(HOUR FROM t.startTime) * 60 + EXTRACT(MINUTE FROM t.startTime))
+			))
+			FROM TimeEntryModel t
+			JOIN t.user u
+			JOIN t.project p
+			WHERE t.entryDate BETWEEN :start AND :end
+			GROUP BY u.username, p.name
+			""")
+	List<ReportDTO> getAggregatedReport(LocalDate start, LocalDate end);
+}
