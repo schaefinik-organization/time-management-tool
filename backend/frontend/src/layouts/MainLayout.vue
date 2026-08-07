@@ -5,9 +5,8 @@
       <h2>TimeTracker</h2>
       <nav>
         <router-link to="/dashboard">Dashboard</router-link>
-        <router-link to="/projects">Projekte</router-link>
         <router-link to="/reports">Auswertungen</router-link>
-        <router-link to="/timetracker">Zeiterfassung</router-link>
+        <router-link to="/tracker">Zeiterfassung</router-link>
       </nav>
     </aside>
 

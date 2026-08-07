@@ -57,12 +57,10 @@ public class SecurityConfig {
 								"/admin/**",
 								"/error")
 						.permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-						.requestMatchers("/api/admin/**").hasRole("ADMIN")
-						.requestMatchers("/api/users/**").authenticated()
-						.requestMatchers("/api/auth/me").authenticated()
-						.requestMatchers("/api/projects/**").authenticated()
-						.requestMatchers("/api/time-entries/**").authenticated()
+						.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+						.requestMatchers("/api/v1/manager/**").hasRole("MANAGER")
+						.requestMatchers("/api/v1/**").authenticated()
 						.anyRequest().authenticated())
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -93,7 +91,7 @@ public class SecurityConfig {
 		configuration.setAllowedOrigins(Arrays.asList(
 				"http://localhost:5173",        // Für deine lokale IDE
 				"https://dev.schaefinik.xyz",   // Deine Dev-Umgebung
-				"https://schaefinik.xyz"        // Für dein späteres Live-System
+				"https://time.schaefinik.xyz"        // Für dein späteres Live-System
 		));
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));

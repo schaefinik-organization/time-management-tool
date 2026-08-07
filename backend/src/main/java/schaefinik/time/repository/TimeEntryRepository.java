@@ -33,11 +33,11 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntryModel, Long>
 	);
 
 	@Query("SELECT new schaefinik.time.response.UserProjectHoursDto(" +
-			"u.id, u.username, SUM(FUNCTION('TIMESTAMPDIFF', MINUTE, t.startTime, t.endTime))) " +
+			"u.id, u.username, SUM((EXTRACT(EPOCH FROM t.endTime) - EXTRACT(EPOCH FROM t.startTime)) / 60)) " +
 			"FROM TimeEntryModel t JOIN t.user u " +
 			"WHERE t.project.id = :projectId " +
-			"AND (:start IS NULL OR t.startTime >= :start) " +
-			"AND (:end IS NULL OR t.startTime <= :end) " +
+			"AND (cast(:start as timestamp) IS NULL OR t.startTime >= :start) " +
+			"AND (cast(:end as timestamp) IS NULL OR t.startTime <= :end) " +
 			"GROUP BY u.id, u.username " +
 			"ORDER BY u.username ASC")
 	List<UserProjectHoursDto> getAggregatedHoursPerUser(

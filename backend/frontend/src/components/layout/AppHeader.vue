@@ -9,8 +9,8 @@
 
         <!-- Desktop Navigation -->
         <nav class="hidden items-center gap-1 lg:flex">
-          <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'projects' }" class="nav-link">Projekte</RouterLink>
-          <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'time-entries' }" class="nav-link">Zeiten</RouterLink>
+          <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'reports' }" class="nav-link">Projekte</RouterLink>
+          <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'tracker' }" class="nav-link">Zeiten</RouterLink>
           
           <!-- Admin Dropdown -->
           <div v-if="authStore.isAdmin" class="relative ml-2" v-click-outside="() => (adminMenuOpen = false)">
@@ -39,9 +39,6 @@
             class="flex items-center gap-2 rounded-full border p-1 pr-3 transition-colors hover:bg-muted"
             :style="{ borderColor: 'var(--border)' }"
           >
-            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
-              {{ userInitials }}
-            </div>
             <span class="hidden text-sm font-medium sm:block">{{ authStore.user?.username }}</span>
           </button>
 
@@ -75,7 +72,7 @@
     <div v-if="mobileMenuOpen" class="border-t lg:hidden" :style="{ background: 'var(--surface)' }">
       <nav class="flex flex-col p-4">
         <template v-if="authStore.isAuthenticated">
-          <RouterLink :to="{ name: 'projects' }" class="p-3 font-medium" @click="mobileMenuOpen = false">Projekte</RouterLink>
+          <RouterLink :to="{ name: 'reports' }" class="p-3 font-medium" @click="mobileMenuOpen = false">Projekte</RouterLink>
           <RouterLink :to="{ name: 'time-entries' }" class="p-3 font-medium" @click="mobileMenuOpen = false">Zeiten</RouterLink>
           <div class="mt-2 border-t pt-2">
             <p class="px-3 py-1 text-xs font-bold uppercase text-muted">Admin</p>

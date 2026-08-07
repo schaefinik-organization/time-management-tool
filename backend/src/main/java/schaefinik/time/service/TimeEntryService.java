@@ -17,6 +17,7 @@ import schaefinik.time.request.TimeEntryRequest;
 import schaefinik.time.response.TimeEntryResponse;
 import schaefinik.time.response.UserProjectHoursDto;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
@@ -135,17 +136,18 @@ public class TimeEntryService {
 		TimeUserModel currentUser = userService.getCurrentUser();
 		ProjectModel project = projectService.getProject(projectId);
 
-		if (!project.getManager().getId().equals(currentUser.getId()) && currentUser.getRole() != Role.ROLE_ADMIN) {
-			throw new AccessDeniedException("Nur der Manager des Projekts darf Auswertungen einsehen.");
+		if (!project.getManager().getId()
+				.equals(currentUser.getId())
+				&& currentUser.getRole()
+				!= Role.ROLE_ADMIN
+		) {
+			throw new AccessDeniedException("MANAGER_ACCESS_DENIED");
 		}
-
-		LocalDateTime startOfMonth = null;
-		LocalDateTime endOfMonth = null;
-
-		if (month != null) {
-			startOfMonth = month.atDay(1).atStartOfDay();
-			endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
+		if (month == null) {
+			month = YearMonth.now(Clock.systemDefaultZone());
 		}
+		LocalDateTime startOfMonth = month.atDay(1).atStartOfDay();
+		LocalDateTime endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
 
 		return timeEntryRepository.getAggregatedHoursPerUser(projectId, startOfMonth, endOfMonth);
 	}
