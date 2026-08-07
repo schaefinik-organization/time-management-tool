@@ -4,7 +4,7 @@
     <aside class="sidebar">
       <h2>TimeTracker</h2>
       <nav>
-        <router-link to="/dashboard">Dashboard</router-link>
+        <router-link to="/">Home</router-link>
         <router-link to="/reports">Auswertungen</router-link>
         <router-link to="/tracker">Zeiterfassung</router-link>
       </nav>
@@ -13,8 +13,13 @@
     <!-- Main Content Area -->
     <div class="main-content">
       <header class="topbar">
-        <span>Willkommen, {{ currentUser.username }}</span>
-        <button @click="logout">Logout</button>
+        <span>Willkommen, {{ username }}</span>
+        <div>
+         <button v-if=isAuthenticated @click="handleLogout">Logout</button>
+         <button v-else @click="$router.push('/login')">Login</button>
+          </div>
+       <div>
+       </div>
       </header>
       
       <!-- Hier wird der Inhalt der jeweiligen View gerendert -->
@@ -26,13 +31,25 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
+import  { useAuthStore }  from '@/stores/authStore'
 
-const currentUser = reactive({ username: 'Manager' })
+const authStore = useAuthStore()
 
-const logout = () => {
-  console.log('Logout logic here')
+const username = computed(() => authStore.user?.username || 'nicht angemeldet')
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+
+function handleLogout() {
+  authStore.logout()
+  router.push({ name: 'login' })
 }
+
+onMounted(() => {
+  authStore.fetchCurrentUser()
+})
+
 </script>
 
 <style scoped>

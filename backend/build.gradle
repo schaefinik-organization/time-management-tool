@@ -64,6 +64,10 @@ tasks.register('devBuild') {
     }
 }
 
+tasks.named('sonar') {
+    dependsOn tasks.named('jacocoTestReport')
+}
+
 node {
     version = '22.12.0'
     download = true
@@ -93,33 +97,34 @@ tasks.register('testFrontend', NpmTask) {
 jacocoTestReport {
     dependsOn test
     reports {
+        html.required = true
         xml.required = true
         csv.required = false
         html.outputLocation = layout.buildDirectory.dir('reports/jacoco/html')
     }
-    
+
     classDirectories.setFrom(
-        files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                '**/dto/**',
-                '**/config/**',
-                '**/entity/**',
-                '**/exception/**',
-                '**/*Application.*'
-            ])
-        })
+            files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                        '**/dto/**',
+                        '**/config/**',
+                        '**/entity/**',
+                        '**/exception/**',
+                        '**/*Application.*'
+                ])
+            })
     )
 }
 
 sonar {
     properties {
-        property "sonar.projectKey", "time-management-tool" 
+        property "sonar.projectKey", "time-management-tool"
         property "sonar.projectName", "Time Management Tool"
-        
+
         property "sonar.sources", "src/main/java,frontend/src"
-        
-        property "sonar.exclusions", "frontend/src/**/*.spec.ts,frontend/src/**/*.test.ts"
-        
+
+        property "sonar.exclusions", "**/frontend/src/assets/**, **/*.png, **/*.jpg, **/*.svg, **/node_modules/**"
+
         property "sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get().asFile}/reports/jacoco/test/jacocoTestReport.xml"
         property "sonar.javascript.lcov.reportPaths", "frontend/coverage/lcov.info"
     }

@@ -25,7 +25,7 @@ export const useAuthStore = defineStore('authStore', {
             // 2. Token extrahieren (Annahme: Backend schickt { token: '...' })
             const token = response.data.token
             this.token = token
-            this.user = response.data.user // Falls das Backend User-Infos mitschickt
+            this.user = response.data // Falls das Backend User-Infos mitschickt
 
             // 3. Im localStorage speichern
             localStorage.setItem('token', token)
@@ -35,6 +35,7 @@ export const useAuthStore = defineStore('authStore', {
         },
 
         async fetchCurrentUser() {
+            console.log("start fetchCurrentUser")
             if (!this.token) return
             try {
                 const response = await fetchCurrentUserApi()

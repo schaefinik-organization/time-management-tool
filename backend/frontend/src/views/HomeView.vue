@@ -21,10 +21,10 @@
           </div>
 
           <div class="flex flex-wrap gap-3">
-            <RouterLink :to="{ name: 'projects' }" class="btn-primary no-underline">
+            <RouterLink :to="{ name: 'reports' }" class="btn-primary no-underline">
               Projekte öffnen
             </RouterLink>
-            <RouterLink :to="{ name: 'time-entries' }" class="btn-secondary no-underline">
+            <RouterLink :to="{ name: 'tracker' }" class="btn-secondary no-underline">
               Zeiteinträge öffnen
             </RouterLink>
           </div>
@@ -78,5 +78,5 @@
 
 <script setup>
 import { RouterLink } from 'vue-router'
-import BaseCard from '../components/ui/BaseCard.vue'
+import BaseCard from '@/components/ui/BaseCard.vue'
 </script>
