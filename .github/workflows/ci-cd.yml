@@ -5,8 +5,6 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-    # 'synchronize' ist wichtig, damit der Scan bei neuen Commits in einem PR aktualisiert wird
-    types: [ opened, synchronize, reopened ]
 
 env:
   REGISTRY: ghcr.io
@@ -19,53 +17,25 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          # Zwingend erforderlich für SonarQube, um "New Code" von altem Code zu unterscheiden
-          fetch-depth: 0
+          fetch-depth: 0 # Zwingend für SonarQube, um "New Code" zu erkennen
 
-      - name: Setup Node.js (Vue Frontend)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          # Teilt GitHub mit, wo der Lock-File liegt, um den Hash für den Cache zu berechnen
-          cache-dependency-path: 'frontend/package-lock.json'
-
-      - name: Setup Java 21 (Spring Boot)
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          # Aktiviert das automatische, hochoptimierte Caching für den ~/.gradle Ordner
-          cache: 'gradle'
+          cache: 'gradle' # Aktiviert das Caching für den .gradle Ordner
 
-      - name: Install Frontend Dependencies (npm ci)
-        working-directory: ./frontend
-        # npm ci ist schneller und strikter in CI-Umgebungen als npm install
-        run: npm ci
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Build and Test with Gradle
-        run: |
-          cd backend
-          chmod +x gradlew
-          ./gradlew build jacocoTestReport
-
-      - name: SonarQube Analysis
+      - name: Build, Test and SonarQube Analysis
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           cd backend
+          chmod +x gradlew
+          # Gradle führt hier ALLES aus: Node-Download, npm install, Vue-Build, Java-Build, Tests und Sonar-Scan
           ./gradlew build sonar --no-daemon \
             -Dsonar.projectKey=time-management-tool \
             -Dsonar.projectName="Mein Time Management Tool Backend" \
@@ -94,7 +64,7 @@ jobs:
         if: github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: ./backend # Behält deinen alten Docker-Kontext bei
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -113,10 +83,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /mnt/raid_pool/configs/GitHub-runner
-            
-            # Optionale .env Datei aus GitHub Secrets generieren
             echo "APP_ENV=development" > .env
-            
             docker compose pull
             docker compose up -d --remove-orphans
 
@@ -134,9 +101,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /mnt/raid_pool/configs/GitHub-runner-prod
-            
-            # Optionale .env Datei aus GitHub Secrets generieren
             echo "APP_ENV=production" > .env
-            
             docker compose pull
             docker compose up -d --remove-orphans
