@@ -5,17 +5,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import schaefinik.time.enums.Role;
-import schaefinik.time.exception.UserNotFoundException;
+import schaefinik.time.exception.ResourceNotFoundException;
 import schaefinik.time.model.TimeUserModel;
 import schaefinik.time.repository.TimeUserRepository;
-import schaefinik.time.requestData.AccountRequest;
-import schaefinik.time.requestData.UserRequest;
-import schaefinik.time.responseData.CurrentUserResponse;
-import schaefinik.time.responseData.UserResponse;
+import schaefinik.time.request.AccountRequest;
+import schaefinik.time.request.UserRequest;
+import schaefinik.time.response.UserResponse;
 import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.security.util.SecurityUtil;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +27,7 @@ public class UserService {
 
 	public TimeUserModel getUser(Long userId) {
 		return userRepository.findById(userId)
-				.orElseThrow(() -> new UserNotFoundException("User not found!"));
+				.orElseThrow(() -> new ResourceNotFoundException("User not found!"));
 	}
 
 	public TimeUserModel getCurrentUser() {
@@ -35,13 +35,9 @@ public class UserService {
 		return getUser(principal.getId());
 	}
 
-	public CurrentUserResponse getCurrentUserData() {
+	public UserResponse getCurrentUserData() {
 		TimeUserModel user = getCurrentUser();
-		return new CurrentUserResponse(
-				user.getId(),
-				user.getUsername(),
-				user.getEmail(),
-				user.getRole().name());
+		return mapToResponse(user);
 	}
 
 	public UserResponse createUser(UserRequest request) {
@@ -140,4 +136,7 @@ public class UserService {
 				user.isEnabled());
 	}
 
+	public Set<TimeUserModel> findAllByIds(Set<Long> userIds) {
+		return userRepository.findAllByIdIn(userIds);
+	}
 }

@@ -160,7 +160,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useAppStore } from '../stores/app.js'
-import { fetchProjectsApi } from '../api/projects.js'
 import {
   createTimeEntryApi,
   deleteTimeEntryApi,

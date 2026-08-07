@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import schaefinik.time.model.TimeUserModel;
 
 import java.util.Optional;
+import java.util.Set;
 
 public interface TimeUserRepository extends JpaRepository<TimeUserModel, Long> {
 	Optional<TimeUserModel> findByUsername(String username);
@@ -13,4 +14,6 @@ public interface TimeUserRepository extends JpaRepository<TimeUserModel, Long> {
 	boolean existsByUsername(String username);
 
 	boolean existsByEmail(String email);
+
+	Set<TimeUserModel> findAllByIdIn(Set<Long> userIds);
 }

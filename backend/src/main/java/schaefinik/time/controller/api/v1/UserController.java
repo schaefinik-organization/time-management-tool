@@ -1,18 +1,18 @@
-package schaefinik.time.controller.api;
+package schaefinik.time.controller.api.v1;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import schaefinik.time.requestData.AccountRequest;
-import schaefinik.time.requestData.UserRequest;
-import schaefinik.time.responseData.UserResponse;
+import schaefinik.time.request.AccountRequest;
+import schaefinik.time.request.UserRequest;
+import schaefinik.time.response.UserResponse;
 import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.service.UserService;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
 public class UserController {
 

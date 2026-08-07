@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"schaefinik.time"})
+@ComponentScan(basePackages = { "schaefinik.time" })
 @EnableJpaRepositories(basePackages = "schaefinik.time")
 @EntityScan(basePackages = "schaefinik.time")
 public class TimeApplication {

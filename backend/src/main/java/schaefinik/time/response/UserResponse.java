@@ -1,4 +1,4 @@
-package schaefinik.time.responseData;
+package schaefinik.time.response;
 
 public record UserResponse(
 		Long id,

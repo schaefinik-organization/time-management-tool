@@ -1,80 +1,51 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import HomeView from '@/views/HomeView.vue'
-import ProjectsView from '@/views/ProjectsView.vue'
-import TimeEntryView from '@/views/TimeEntryView.vue'
+import { useAuthStore } from '@/stores/authStore'
 import LoginView from '@/views/LoginView.vue'
-import AdminUsersView from '@/views/admin/AdminUsersView.vue'
-import ProfileView from '@/views/ProfileView.vue'
-import AdminReportsView from '@/views/admin/AdminReportsView.vue'
 
 const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/projects',
-    name: 'projects',
-    component: ProjectsView,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/time-entries',
-    name: 'time-entries',
-    component: TimeEntryView,
-    meta: { requiresAuth: true }
-  },
-  {
+
+   {
     path: '/login',
     name: 'login',
     component: LoginView
   },
   {
+    path: '/tracker',
+    component: () => import('@/views/TimeTrackerView.vue'),
+    meta: { requiresAuth: true, allowedRoles: ['ROLE_USER', 'ROLE_MANAGER', 'ROLE_ADMIN'] }
+  },
+  {
+    path: '/reports',
+    component: () => import('@/views/ProjectReportView.vue'),
+    meta: { requiresAuth: true, allowedRoles: ['ROLE_MANAGER', 'ROLE_ADMIN'] }
+  },
+  {
     path: '/admin/users',
-    name: 'admin-users',
-    component: AdminUsersView,
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/reports',
-    name: 'admin-reports',
-    component: AdminReportsView,
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/profile',
-    name: 'profile',
-    component: ProfileView,
-    meta: { requiresAuth: true }
-  },
+    component: () => import('@/views/admin/AdminUsersView.vue'),
+    meta: { requiresAuth: true, allowedRoles: ['ROLE_ADMIN'] }
+  }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
-  linkActiveClass: 'nav-link-active',
-  linkExactActiveClass: 'nav-link-exact'
+  routes
 })
-router.beforeEach(async (to) => {
+
+router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   
-  // Wenn wir ein Token haben, aber noch keinen User, User-Daten nachladen
-  if (authStore.token && !authStore.user) {
-    await authStore.fetchCurrentUser()
-  }
-
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return {
-      name: 'login',
-      query: { redirect: to.fullPath } // Weiterleitung nach dem Login
+    return next('/login')
+  }
+  
+  if (to.meta.allowedRoles && authStore.user) {
+    const hasRole = to.meta.allowedRoles.includes(authStore.user.role)
+    if (!hasRole) {
+      return next('/tracker') 
     }
   }
-  if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    return { name: 'home' } // Weiterleitung zur Startseite, wenn kein Admin
-  }
-
+  
+  next()
 })
 
 export default router

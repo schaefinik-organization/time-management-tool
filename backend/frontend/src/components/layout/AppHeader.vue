@@ -6,14 +6,9 @@
     <div class="page-container flex items-center justify-between py-3">
       <!-- Logo Bereich -->
       <div class="flex items-center gap-8">
-        <RouterLink :to="{ name: 'home' }" class="flex flex-col no-underline">
-          <span class="text-xl font-bold tracking-tight" :style="{ color: 'var(--text)' }">TimeTool</span>
-          <span class="hidden text-xs text-muted sm:block">Zeiterfassung & Management</span>
-        </RouterLink>
 
         <!-- Desktop Navigation -->
         <nav class="hidden items-center gap-1 lg:flex">
-          <RouterLink :to="{ name: 'home' }" class="nav-link">Home</RouterLink>
           <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'projects' }" class="nav-link">Projekte</RouterLink>
           <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'time-entries' }" class="nav-link">Zeiten</RouterLink>
           
@@ -26,15 +21,6 @@
               Admin
               <ChevronDownIcon class="h-4 w-4 transition-transform" :class="{ 'rotate-180': adminMenuOpen }" />
             </button>
-            
-            <div v-if="adminMenuOpen" class="dropdown-menu">
-              <RouterLink :to="{ name: 'admin-users' }" class="dropdown-item" @click="adminMenuOpen = false">
-                Benutzerverwaltung
-              </RouterLink>
-               <RouterLink :to="{ name: 'admin-reports' }" class="dropdown-item" @click="adminMenuOpen = false">
-                Benutzerreporting
-              </RouterLink>
-            </div>
           </div>
         </nav>
       </div>
@@ -88,7 +74,6 @@
     <!-- Mobil Navigation Overlay -->
     <div v-if="mobileMenuOpen" class="border-t lg:hidden" :style="{ background: 'var(--surface)' }">
       <nav class="flex flex-col p-4">
-        <RouterLink :to="{ name: 'home' }" class="p-3 font-medium" @click="mobileMenuOpen = false">Home</RouterLink>
         <template v-if="authStore.isAuthenticated">
           <RouterLink :to="{ name: 'projects' }" class="p-3 font-medium" @click="mobileMenuOpen = false">Projekte</RouterLink>
           <RouterLink :to="{ name: 'time-entries' }" class="p-3 font-medium" @click="mobileMenuOpen = false">Zeiten</RouterLink>

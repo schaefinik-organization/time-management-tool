@@ -4,15 +4,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import schaefinik.time.model.TimeEntryModel;
-import schaefinik.time.responseData.ReportDTO;
+import schaefinik.time.response.UserProjectHoursDto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TimeEntryRepository extends JpaRepository<TimeEntryModel, Long> {
-
-	List<TimeEntryModel> findByUserIdAndEntryDate(Long userId, LocalDate entryDate);
 
 	@Query("SELECT COUNT(t) > 0 FROM TimeEntryModel t WHERE t.user.id = :userId " +
 			"AND t.startTime < :endTime " +
@@ -25,16 +22,27 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntryModel, Long>
 			@Param("entryId") Long entryId
 	);
 
-	@Query("""
-			SELECT new ReportDTO(u.username, p.name, SUM(
-			(EXTRACT(HOUR FROM t.endTime) * 60 + EXTRACT(MINUTE FROM t.endTime)) - 
-			(EXTRACT(HOUR FROM t.startTime) * 60 + EXTRACT(MINUTE FROM t.startTime))
-			))
-			FROM TimeEntryModel t
-			JOIN t.user u
-			JOIN t.project p
-			WHERE t.entryDate BETWEEN :start AND :end
-			GROUP BY u.username, p.name
-			""")
-	List<ReportDTO> getAggregatedReport(LocalDate start, LocalDate end);
+	List<TimeEntryModel> findByUserIdOrderByStartTimeDesc(Long userId);
+
+	List<TimeEntryModel> findByProjectIdOrderByStartTimeDesc(Long projectId);
+
+	List<TimeEntryModel> findByProjectIdAndStartTimeBetweenOrderByStartTimeDesc(
+			Long projectId,
+			LocalDateTime start,
+			LocalDateTime end
+	);
+
+	@Query("SELECT new schaefinik.time.response.UserProjectHoursDto(" +
+			"u.id, u.username, SUM(FUNCTION('TIMESTAMPDIFF', MINUTE, t.startTime, t.endTime))) " +
+			"FROM TimeEntryModel t JOIN t.user u " +
+			"WHERE t.project.id = :projectId " +
+			"AND (:start IS NULL OR t.startTime >= :start) " +
+			"AND (:end IS NULL OR t.startTime <= :end) " +
+			"GROUP BY u.id, u.username " +
+			"ORDER BY u.username ASC")
+	List<UserProjectHoursDto> getAggregatedHoursPerUser(
+			@Param("projectId") Long projectId,
+			@Param("start") LocalDateTime start,
+			@Param("end") LocalDateTime end
+	);
 }

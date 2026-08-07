@@ -2,5 +2,9 @@
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.format.settings.url": "eclipse-formatter.xml",
   "editor.tabSize": 2,
-  "java.jdt.ls.lombokSupport.enabled": true
+  "java.jdt.ls.lombokSupport.enabled": true,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "https-sonar-schaefinik-xyz",
+    "projectKey": "time-management-tool"
+  }
 }

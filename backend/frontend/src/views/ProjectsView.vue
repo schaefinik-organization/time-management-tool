@@ -1,6 +1,5 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { createProjectApi, deleteProjectApi, fetchProjectsApi, updateProjectApi } from '../api/projects'
 import { useFormHandler } from '../composables/useFormHandler'
 import AppError from '../components/ui/AppError.vue'
 import BaseButton from '../components/ui/BaseButton.vue'

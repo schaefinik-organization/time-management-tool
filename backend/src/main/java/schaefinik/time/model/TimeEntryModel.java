@@ -19,11 +19,11 @@ public class TimeEntryModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
 	private TimeUserModel user;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "project_id", nullable = false)
 	private ProjectModel project;
 
@@ -34,9 +34,9 @@ public class TimeEntryModel {
 	private LocalDateTime endTime;
 
 	@Column(length = 500)
-	private String note;
+	private String description;
 
-	@Column(nullable = false)
+	@Column(nullable = false, updatable = false)
 	@Builder.Default
 	private LocalDateTime createdAt = LocalDateTime.now(Clock.systemDefaultZone());
 }
