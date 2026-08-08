@@ -14,7 +14,7 @@ import schaefinik.time.repository.TimeUserRepository;
 @Component
 @ConditionalOnProperty(name = "app.seeder.enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
-@Order(1) // Zuerst ausführen
+@Order(1)
 public class AdminUserSeeder implements CommandLineRunner {
 	private final TimeUserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;

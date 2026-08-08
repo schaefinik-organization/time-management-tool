@@ -7,7 +7,6 @@
             class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
             :style="{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }"
           >
-            MVP Startseite
           </span>
 
           <div class="space-y-3">

@@ -11,12 +11,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.2",
+    "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.18.1",
     "chart.js": "^4.5.1",
     "lucide-vue-next": "^1.0.0",
     "pinia": "^3.0.4",
-    "tailwindcss": "^4.3.2",
     "vue": "^3.5.39",
     "vue-chartjs": "^5.3.4",
     "vue-router": "^5.1.0"
@@ -25,7 +24,10 @@
     "@vitejs/plugin-vue": "^6.0.7",
     "@vitest/coverage-v8": "^4.1.10",
     "@vue/test-utils": "^2.4.11",
+    "autoprefixer": "^10.5.4",
     "jsdom": "^30.0.1",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
     "vite": "^8.1.1",
     "vitest": "^4.1.10"
   }

@@ -14,6 +14,5 @@ public class ApiError {
 	private String error;
 	private String message;
 	private String path;
-	// Für Validierungsfehler (z.B. Feld 'name' darf nicht leer sein)
 	private Map<String, String> validationErrors;
 }

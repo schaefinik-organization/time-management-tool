@@ -91,6 +91,7 @@
               <label class="text-sm font-medium">Rolle</label>
               <BaseSelect v-model="form.role">
                 <option value="ROLE_USER">Benutzer</option>
+                <option value="ROLE_MANAGER">Manager</option>
                 <option value="ROLE_ADMIN">Administrator</option>
               </BaseSelect>
             </div>
