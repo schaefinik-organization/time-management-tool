@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import schaefinik.time.data.TimeEntryData;
 import schaefinik.time.enums.Role;
 import schaefinik.time.exception.InvalidTimeRangeException;
 import schaefinik.time.exception.OverlappingTimeException;
@@ -14,8 +13,9 @@ import schaefinik.time.model.TimeEntryModel;
 import schaefinik.time.model.TimeUserModel;
 import schaefinik.time.repository.TimeEntryRepository;
 import schaefinik.time.request.TimeEntryRequest;
-import schaefinik.time.response.TimeEntryResponse;
-import schaefinik.time.response.UserProjectHoursDto;
+import schaefinik.time.response.DataMapper;
+import schaefinik.time.response.entry.TimeEntryDTO;
+import schaefinik.time.response.project.UserProjectHoursDto;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -30,18 +30,19 @@ public class TimeEntryService {
 	private final TimeEntryRepository timeEntryRepository;
 	private final ProjectService projectService;
 	private final UserService userService;
+	private final DataMapper dataMapper;
 
 	@Transactional(readOnly = true)
-	public List<TimeEntryResponse> getMyTimeEntries() {
+	public List<TimeEntryDTO> getMyTimeEntries() {
 		TimeUserModel currentUser = userService.getCurrentUser();
 		return timeEntryRepository.findByUserIdOrderByStartTimeDesc(currentUser.getId())
 				.stream()
-				.map(this::mapToResponse)
+				.map(this::mapToDTO)
 				.toList();
 	}
 
 	@Transactional
-	public TimeEntryResponse createEntry(TimeEntryRequest request) {
+	public TimeEntryDTO createEntry(TimeEntryRequest request) {
 		TimeUserModel currentUser = userService.getCurrentUser();
 
 		ProjectModel project = projectService.getProject(request.getProjectId());
@@ -58,11 +59,11 @@ public class TimeEntryService {
 				.description(request.getDescription())
 				.build();
 
-		return mapToResponse(timeEntryRepository.save(entry));
+		return mapToDTO(timeEntryRepository.save(entry));
 	}
 
 	@Transactional
-	public TimeEntryResponse updateEntry(Long id, TimeEntryRequest request) {
+	public TimeEntryDTO updateEntry(Long id, TimeEntryRequest request) {
 		TimeEntryModel entry = getTimeEntry(id);
 		TimeUserModel currentUser = userService.getCurrentUser();
 
@@ -80,7 +81,7 @@ public class TimeEntryService {
 		entry.setEndTime(request.getEndTime());
 		entry.setDescription(request.getDescription());
 
-		return mapToResponse(timeEntryRepository.save(entry));
+		return mapToDTO(timeEntryRepository.save(entry));
 	}
 
 	@Transactional
@@ -95,7 +96,38 @@ public class TimeEntryService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<TimeEntryData> getReportForProject(Long projectId, YearMonth month) {
+	public List<TimeEntryDTO> getUserMonthlyReport(YearMonth month) {
+		TimeUserModel currentUser = userService.getCurrentUser();
+
+		LocalDateTime start = month.atDay(1).atStartOfDay();
+		LocalDateTime end = month.atEndOfMonth().atTime(23, 59, 59);
+
+		List<TimeEntryModel> entries = timeEntryRepository.findByUserIdAndStartTimeBetweenOrderByStartTimeDesc(
+				currentUser.getId(), start, end);
+
+		return entries.stream().map(this::mapToDTO).toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<UserProjectHoursDto> getTeamReportForManager(YearMonth month) {
+		TimeUserModel currentManager = userService.getCurrentUser();
+		if (currentManager.getRole() == Role.ROLE_USER) {
+			throw new AccessDeniedException("Normale User haben keinen Zugriff auf Team-Reports.");
+		}
+		if (month == null) {
+			month = YearMonth.now(Clock.systemDefaultZone());
+		}
+		LocalDateTime startOfMonth = month.atDay(1).atStartOfDay();
+		LocalDateTime endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
+		return timeEntryRepository.getAggregatedHoursByManager(
+				currentManager.getId(),
+				startOfMonth,
+				endOfMonth
+		);
+	}
+
+	@Transactional(readOnly = true)
+	public List<TimeEntryDTO> getTimeEntryForProject(Long projectId, YearMonth month) {
 		TimeUserModel currentUser = userService.getCurrentUser();
 		ProjectModel project = projectService.getProject(projectId);
 
@@ -116,19 +148,8 @@ public class TimeEntryService {
 		}
 
 		return entries.stream()
-				.map(this::mapToData)
+				.map(this::mapToDTO)
 				.toList();
-	}
-
-	private TimeEntryData mapToData(TimeEntryModel timeEntryModel) {
-		return new TimeEntryData(
-				timeEntryModel.getId(),
-				timeEntryModel.getProject().getId(),
-				timeEntryModel.getProject().getName(),
-				timeEntryModel.getStartTime(),
-				timeEntryModel.getEndTime(),
-				timeEntryModel.getDescription()
-		);
 	}
 
 	@Transactional(readOnly = true)
@@ -181,14 +202,7 @@ public class TimeEntryService {
 		}
 	}
 
-	private TimeEntryResponse mapToResponse(TimeEntryModel entry) {
-		return new TimeEntryResponse(
-				entry.getId(),
-				entry.getProject().getId(),
-				entry.getProject().getName(),
-				entry.getStartTime(),
-				entry.getEndTime(),
-				entry.getDescription()
-		);
+	private TimeEntryDTO mapToDTO(TimeEntryModel timeEntryModel) {
+		return dataMapper.toTimeEntryDto(timeEntryModel);
 	}
 }

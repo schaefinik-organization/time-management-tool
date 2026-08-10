@@ -7,8 +7,10 @@ import AppError from '@/components/ui/AppError.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseCard from '@/components/ui/BaseCard.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
+import { useUserStore } from '@/stores/userStore'
 
 const authStore = useAuthStore()
+const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -28,6 +30,7 @@ async function handleLogin() {
       password: form.password 
     }),
     () => {
+      userStore.loadCurrentUser()
       router.push(redirectTarget.value)
     }
   );

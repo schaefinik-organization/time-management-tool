@@ -9,14 +9,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import schaefinik.time.data.TimeEntryData;
-import schaefinik.time.request.AssignUsersRequest;
-import schaefinik.time.request.ProjectRequest;
-import schaefinik.time.response.ProjectResponse;
-import schaefinik.time.response.UserProjectHoursDto;
+import schaefinik.time.request.project.ProjectChangeRequest;
+import schaefinik.time.request.project.ProjectCreateRequest;
+import schaefinik.time.response.entry.TimeEntryDTO;
+import schaefinik.time.response.project.ProjectDTO;
+import schaefinik.time.response.project.UserProjectHoursDto;
 import schaefinik.time.service.ExportService;
 import schaefinik.time.service.ProjectService;
 import schaefinik.time.service.TimeEntryService;
+import schaefinik.time.service.UserService;
 
 import java.time.YearMonth;
 import java.util.List;
@@ -28,47 +29,38 @@ public class ProjectController {
 
 	private final ProjectService projectService;
 	private final TimeEntryService timeEntryService;
+	private final UserService userService;
 	private final ExportService exportService;
 
 	@GetMapping("/assigned")
-	public ResponseEntity<List<ProjectResponse>> getAssignedProjects() {
-		List<ProjectResponse> projects = projectService.findAllAssignedToCurrentUser();
-		return ResponseEntity.ok(projects);
+	public ResponseEntity<List<ProjectDTO>> getAssignedProjects() {
+		List<ProjectDTO> assigned = projectService.findAllAssignedToCurrentUser();
+		return ResponseEntity.ok(assigned);
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<ProjectResponse> getProjectById(@PathVariable Long id) {
+	public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
 		return ResponseEntity.ok(projectService.getProjectData(id));
 	}
 
 	@GetMapping("/managed")
 	@PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
-	public ResponseEntity<List<ProjectResponse>> getManagedProjects() {
-		List<ProjectResponse> projects = projectService.findAllManagedByCurrentUser();
+	public ResponseEntity<List<ProjectDTO>> getManagedProjects() {
+		List<ProjectDTO> projects = projectService.findAllManagedByCurrentUser();
 		return ResponseEntity.ok(projects);
 	}
 
 	@PostMapping
 	@PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
-	public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody ProjectRequest request) {
-		ProjectResponse createdProject = projectService.create(request);
+	public ResponseEntity<ProjectDTO> createProject(@Valid @RequestBody ProjectCreateRequest request) {
+		ProjectDTO createdProject = projectService.create(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(createdProject);
 	}
 
 	@PutMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
-	public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id, @Valid @RequestBody ProjectRequest request) {
-		ProjectResponse updatedProject = projectService.update(id, request);
-		return ResponseEntity.ok(updatedProject);
-	}
-
-	@PatchMapping("/{id}/users")
-	@PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
-	public ResponseEntity<ProjectResponse> assignUsersToProject(
-			@PathVariable Long id,
-			@Valid @RequestBody AssignUsersRequest request) {
-
-		ProjectResponse updatedProject = projectService.assignUsers(id, request.getUserIds());
+	public ResponseEntity<ProjectDTO> updateProject(@PathVariable Long id, @Valid @RequestBody ProjectChangeRequest request) {
+		ProjectDTO updatedProject = projectService.update(id, request);
 		return ResponseEntity.ok(updatedProject);
 	}
 
@@ -81,11 +73,11 @@ public class ProjectController {
 
 	@GetMapping("/{projectId}/time-entries")
 	@PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
-	public ResponseEntity<List<TimeEntryData>> getProjectTimeEntries(
+	public ResponseEntity<List<TimeEntryDTO>> getProjectTimeEntries(
 			@PathVariable Long projectId,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
 
-		List<TimeEntryData> report = timeEntryService.getReportForProject(projectId, month);
+		List<TimeEntryDTO> report = timeEntryService.getTimeEntryForProject(projectId, month);
 		return ResponseEntity.ok(report);
 	}
 
@@ -106,7 +98,7 @@ public class ProjectController {
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
 
 		// 1. Hole die Daten (nutzt unsere bestehende Methode aus Epic 3)
-		List<TimeEntryData> reportData = timeEntryService.getReportForProject(projectId, month);
+		List<TimeEntryDTO> reportData = timeEntryService.getTimeEntryForProject(projectId, month);
 
 		// 2. Erzeuge die Datei
 		byte[] file = exportService.exportToExcel(reportData);
@@ -124,9 +116,7 @@ public class ProjectController {
 	public ResponseEntity<byte[]> exportProjectToPdf(
 			@PathVariable Long projectId,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
-
-		List<TimeEntryData> reportData = timeEntryService.getReportForProject(projectId, month);
-		byte[] file = exportService.exportToPdf(reportData);
+		byte[] file = exportService.exportProjectIdForMonthToPdf(projectId, month);
 
 		String filename = "projekt_" + projectId + "_report.pdf";
 		return ResponseEntity.ok()

@@ -1,6 +1,7 @@
 package schaefinik.time.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,13 +10,16 @@ import schaefinik.time.exception.ResourceNotFoundException;
 import schaefinik.time.model.TimeUserModel;
 import schaefinik.time.repository.TimeUserRepository;
 import schaefinik.time.request.AccountRequest;
-import schaefinik.time.request.UserRequest;
-import schaefinik.time.response.UserResponse;
+import schaefinik.time.request.user.UserChangeRequest;
+import schaefinik.time.request.user.UserCreateRequest;
+import schaefinik.time.response.DataMapper;
+import schaefinik.time.response.user.TimeUserDTO;
 import schaefinik.time.security.principal.TimeUserPrincipal;
 import schaefinik.time.security.util.SecurityUtil;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +28,36 @@ public class UserService {
 
 	private final TimeUserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final DataMapper dataMapper;
+
+	public List<TimeUserDTO> findAllUsers() {
+		return userRepository.findAll()
+				.stream()
+				.map(this::mapToDTO)
+				.toList();
+	}
+
+	public List<TimeUserDTO> findAllSubordinatesByCurrentUser() {
+		TimeUserModel currentUser = getCurrentUser();
+		return findAllByIds(
+				currentUser.getSubordinates()
+						.stream()
+						.map(TimeUserModel::getId)
+						.collect(Collectors.toSet())
+		)
+				.stream()
+				.map(this::mapToDTO)
+				.collect(Collectors.toList());
+	}
 
 	public TimeUserModel getUser(Long userId) {
 		return userRepository.findById(userId)
-				.orElseThrow(() -> new ResourceNotFoundException("User not found!"));
+				.orElseThrow(
+						() ->
+								new ResourceNotFoundException(
+										"User not found!"
+								)
+				);
 	}
 
 	public TimeUserModel getCurrentUser() {
@@ -35,28 +65,74 @@ public class UserService {
 		return getUser(principal.getId());
 	}
 
-	public UserResponse getCurrentUserData() {
+	public TimeUserDTO getCurrentUserData() {
 		TimeUserModel user = getCurrentUser();
-		return mapToResponse(user);
+		return mapToDTO(user);
 	}
 
-	public UserResponse createUser(UserRequest request) {
-		checkUsername(request.username());
-		checkEmail(request.email());
+	@Transactional
+	public boolean createEmployee(UserCreateRequest request) {
+		TimeUserModel currentUser = getCurrentUser();
 
-		Role role = request.role() != null ? request.role() : Role.ROLE_USER;
+		// Nur Manager (und Admins) dürfen das
+		if (currentUser.getRole() == Role.ROLE_USER) {
+			throw new AccessDeniedException("Normale User dürfen keine Accounts anlegen.");
+		}
 
+		TimeUserModel newUser = new TimeUserModel();
+		newUser.setUsername(request.getUsername());
+		newUser.setEmail(request.getEmail());
+		newUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+		newUser.setRole(Role.ROLE_USER);
+
+		if (currentUser.getRole() == Role.ROLE_MANAGER) {
+			newUser.setManager(currentUser);
+		}
+		//send email
+
+		userRepository.save(newUser);
+		return true;
+	}
+
+	@Transactional
+	public boolean assignUserToManager(Long userId, Long managerId) {
+		TimeUserModel currentUser = getCurrentUser();
+
+		if (currentUser.getRole() != Role.ROLE_ADMIN) {
+			throw new AccessDeniedException("Nur Administratoren dürfen Zuweisungen ändern.");
+		}
+
+		TimeUserModel employee = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User nicht gefunden"));
+
+		TimeUserModel newManager = userRepository.findById(managerId)
+				.orElseThrow(() -> new ResourceNotFoundException("Manager nicht gefunden"));
+
+		if (newManager.getRole() == Role.ROLE_USER) {
+			throw new IllegalArgumentException("Ein User kann nicht Manager eines anderen Users sein.");
+		}
+
+		employee.setManager(newManager);
+		userRepository.save(employee);
+		return true;
+	}
+
+	public boolean createUser(UserCreateRequest request) {
+		checkUsername(request.getUsername());
+		checkEmail(request.getEmail());
+
+		Role role = Role.ROLE_USER;
 		TimeUserModel user = TimeUserModel.builder()
-				.username(request.username())
-				.email(request.email())
-				.passwordHash(passwordEncoder.encode(request.password()))
+				.username(request.getUsername())
+				.email(request.getEmail())
+				.passwordHash(passwordEncoder.encode(request.getPassword()))
 				.role(role)
 				.enabled(true)
 				.build();
 
-		TimeUserModel savedUser = userRepository.save(user);
-
-		return mapToResponse(savedUser);
+		userRepository.save(user);
+		//send email
+		return true;
 	}
 
 	public void changePassword(TimeUserPrincipal principal, AccountRequest request) {
@@ -75,41 +151,36 @@ public class UserService {
 		userRepository.deleteById(id);
 	}
 
-	public List<UserResponse> findAllUsers() {
-		return userRepository.findAll().stream().map(this::mapToResponse).toList();
-	}
-
-	public UserResponse updateUser(Long id, UserRequest request) {
+	public boolean updateUser(Long id, UserChangeRequest request) {
 		TimeUserModel user = getUser(id);
 
-		if (request.username() != null && !request.username().equals(user.getUsername())) {
-			checkUsername(request.username());
-			user.setUsername(request.username());
+		if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
+			checkUsername(request.getUsername());
+			user.setUsername(request.getUsername());
 		}
 
-		if (request.email() != null && !request.email().equals(user.getEmail())) {
-			checkEmail(request.email());
-			user.setEmail(request.email());
+		if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+			checkEmail(request.getEmail());
+			user.setEmail(request.getEmail());
 		}
 
-		if (request.password() != null) {
-			user.setPasswordHash(passwordEncoder.encode(request.password()));
+		if (request.getPassword() != null) {
+			user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 		}
 
-		if (request.role() != null) {
-			user.setRole(request.role());
+		if (request.getRole() != null) {
+			user.setRole(request.getRole());
 		}
 
-		if (request.enabled() != null && request.enabled() != user.isEnabled()) {
-			user.setEnabled(request.enabled());
+		if (request.getEnabled() != null && request.getEnabled() != user.isEnabled()) {
+			user.setEnabled(request.getEnabled());
 		}
 
-		TimeUserModel updatedUser = userRepository.save(user);
-
-		return mapToResponse(updatedUser);
+		userRepository.save(user);
+		return true;
 	}
 
-	public UserResponse updateCurrentUser(UserRequest request) {
+	public boolean updateCurrentUser(UserChangeRequest request) {
 		TimeUserModel user = getCurrentUser();
 		return updateUser(user.getId(), request);
 
@@ -127,13 +198,8 @@ public class UserService {
 		}
 	}
 
-	private UserResponse mapToResponse(TimeUserModel user) {
-		return new UserResponse(
-				user.getId(),
-				user.getUsername(),
-				user.getEmail(),
-				user.getRole().name(),
-				user.isEnabled());
+	private TimeUserDTO mapToDTO(TimeUserModel user) {
+		return dataMapper.toUserDto(user);
 	}
 
 	public Set<TimeUserModel> findAllByIds(Set<Long> userIds) {

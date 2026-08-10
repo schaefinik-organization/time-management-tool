@@ -9,7 +9,6 @@ const api = axios.create({
     },
 });
 
-// Request Interceptor: Token an jeden Request hängen
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token')
     if (token) {
@@ -18,15 +17,13 @@ api.interceptors.request.use((config) => {
     return config
 })
 
-// Response Interceptor: Fängt alle Antworten ab
 api.interceptors.response.use(
-    (response) => response, // Erfolgreiche Antworten einfach durchreichen
+    (response) => response, 
     (error) => {
         const {status, data} = error.response;
 
         switch (status) {
             case 401:
-                // Nicht eingeloggt -> zum Login leiten
                 const authStore = useAuthStore();
                 authStore.logout();
                 router.push('/login');
@@ -44,9 +41,6 @@ api.interceptors.response.use(
                 alert("Serverfehler. Bitte versuchen Sie es später erneut.");
                 break;
         }
-
-        // WICHTIG: Den Fehler weitergeben, damit die Komponente
-        // auf spezifische Fehler (wie 400 Validation) reagieren kann.
         return Promise.reject(error);
     }
 );

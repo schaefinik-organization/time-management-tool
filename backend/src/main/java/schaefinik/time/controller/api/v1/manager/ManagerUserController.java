@@ -1,4 +1,4 @@
-package schaefinik.time.controller.api.v1.admin;
+package schaefinik.time.controller.api.v1.manager;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,30 +14,24 @@ import schaefinik.time.service.UserService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/admin/users")
+@RequestMapping("/api/v1/manager/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
-public class AdminUserController {
+@PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
+public class ManagerUserController {
 	private final UserService userService;
 
 	@GetMapping(produces = "application/json")
-	public ResponseEntity<List<TimeUserDTO>> getAllUsers() {
-		return ResponseEntity.ok(userService.findAllUsers());
+	public ResponseEntity<List<TimeUserDTO>> getAllSubordinates() {
+		return ResponseEntity.ok(userService.findAllSubordinatesByCurrentUser());
 	}
 
 	@PostMapping(produces = "application/json")
-	public ResponseEntity<Boolean> createUser(@Valid @RequestBody UserCreateRequest request) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(request));
+	public ResponseEntity<Boolean> createEmployee(@Valid @RequestBody UserCreateRequest request) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(userService.createEmployee(request));
 	}
 
 	@PutMapping(value = "/{id}", produces = "application/json")
-	public ResponseEntity<Boolean> updateUser(@PathVariable Long id, @Valid @RequestBody UserChangeRequest request) {
+	public ResponseEntity<Boolean> updateEmployee(@PathVariable Long id, @Valid @RequestBody UserChangeRequest request) {
 		return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.updateUser(id, request));
-	}
-
-	@DeleteMapping(value = "/{id}", produces = "application/json")
-	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-		userService.deleteUser(id);
-		return ResponseEntity.noContent().build();
 	}
 }

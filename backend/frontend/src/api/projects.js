@@ -20,14 +20,14 @@ export function updateProjectApi(id, payload) {
     return api.put(`/projects/${id}`, payload)
 }
 
+export function archiveProjectApi(id) {
+    return api.delete(`/projects/${id}`)
+}
+
 export function assignUsersToProjectApi(id, userIdsArray) {
     return api.patch(`/projects/${id}/users`, {
         userIds: userIdsArray
     })
-}
-
-export function archiveProjectApi(id) {
-    return api.delete(`/projects/${id}`)
 }
 
 export function fetchProjectHoursReportApi(projectId, month) {
@@ -39,7 +39,7 @@ export function exportProjectExcelApi(projectId, month) {
   const params = month ? { month } : {}
   return api.get(`/projects/${projectId}/export/excel`, {
     params,
-    responseType: 'blob' // EXTREM WICHTIG für Dateien!
+    responseType: 'blob'
   })
 }
 

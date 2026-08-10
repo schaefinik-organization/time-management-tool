@@ -8,32 +8,39 @@
     </div>
     
     <p class="description">{{ project.description || 'Keine Beschreibung' }}</p>
-    
+
+    <div class="finances" v-if="project.internalHourlyRate">
+        Stundensatz: {{ formatCurrency(project.internalHourlyRate, project.currency) }}
+    </div>
+
     <div class="finances" v-if="project.hourlyRate">
-      Stundensatz: {{ formatCurrency(project.hourlyRate, project.currency) }}
+        Stundensatz: {{ formatCurrency(project.hourlyRate, project.currency) }}
     </div>
 
     <div class="actions">
-      <button @click="$emit('edit', project)">Bearbeiten</button>
-      <!-- Manager Button (später für Epic 3/4) -->
-      <router-link :to="`/projects/${project.id}/reports`">Report</router-link>
+      <button class="btn-secondary" @click="$emit('edit', project)">Bearbeiten</button>
+      <router-link class="btn-secondary" :to="`/reports/${project.id}`">Berichte</router-link>
+      <button v-if="isActive" class="btn-secondary" @click="$emit('archive', project)">Archivieren</button>
     </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   project: {
     type: Object,
     required: true
   }
 })
 
-// Definiert Events, die an das Parent (ProjectDashboard) gesendet werden können
-defineEmits(['edit'])
+defineEmits(['edit', 'archive'])
 
-const formatCurrency = (amount, currencyCode) => {
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: currencyCode }).format(amount)
+const isActive = computed(() => props.project.active)
+
+const formatCurrency = (amount, currency) => {
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: currency }).format(amount)
 }
 </script>
 

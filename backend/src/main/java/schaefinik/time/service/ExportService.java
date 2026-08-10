@@ -5,23 +5,29 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
-import schaefinik.time.data.TimeEntryData;
+import org.springframework.transaction.annotation.Transactional;
+import schaefinik.time.response.entry.TimeEntryDTO;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class ExportService {
 
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+	private final TimeEntryService timeEntryService;
 
-	public byte[] exportToExcel(List<TimeEntryData> entries) {
+	public byte[] exportToExcel(List<TimeEntryDTO> entries) {
 		try (Workbook workbook = new XSSFWorkbook();
 		     ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
@@ -41,12 +47,12 @@ public class ExportService {
 			}
 
 			int rowIdx = 1;
-			for (TimeEntryData entry : entries) {
+			for (TimeEntryDTO entry : entries) {
 				Row row = sheet.createRow(rowIdx++);
 				row.createCell(0).setCellValue(entry.getStartTime().format(DATE_FORMATTER));
 				row.createCell(1).setCellValue(entry.getStartTime().format(TIME_FORMATTER));
 				row.createCell(2).setCellValue(entry.getEndTime().format(TIME_FORMATTER));
-				row.createCell(3).setCellValue(entry.getProjectName());
+				row.createCell(3).setCellValue(entry.getProject().getName());
 				row.createCell(4).setCellValue(entry.getDescription() != null ? entry.getDescription() : "");
 			}
 
@@ -62,7 +68,8 @@ public class ExportService {
 		}
 	}
 
-	public byte[] exportToPdf(List<TimeEntryData> entries) {
+	public byte[] exportProjectIdForMonthToPdf(Long projectId, YearMonth month) {
+		List<TimeEntryDTO> entries = timeEntryService.getTimeEntryForProject(projectId, month);
 		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
 			PdfWriter writer = new PdfWriter(out);
@@ -80,13 +87,13 @@ public class ExportService {
 			table.addHeaderCell("Projekt");
 			table.addHeaderCell("Beschreibung");
 
-			for (TimeEntryData entry : entries) {
+			for (TimeEntryDTO entry : entries) {
 				String dateStr = entry.getStartTime().format(DATE_FORMATTER);
 				String timeStr = entry.getStartTime().format(TIME_FORMATTER) + " - " + entry.getEndTime().format(TIME_FORMATTER);
 
 				table.addCell(dateStr);
 				table.addCell(timeStr);
-				table.addCell(entry.getProjectName());
+				table.addCell(entry.getProject().getName());
 				table.addCell(entry.getDescription() != null ? entry.getDescription() : "");
 			}
 

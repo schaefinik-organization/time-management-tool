@@ -10,12 +10,15 @@ import schaefinik.time.exception.ResourceNotFoundException;
 import schaefinik.time.model.ProjectModel;
 import schaefinik.time.model.TimeUserModel;
 import schaefinik.time.repository.ProjectRepository;
-import schaefinik.time.request.ProjectRequest;
-import schaefinik.time.response.ProjectResponse;
+import schaefinik.time.request.project.ProjectChangeRequest;
+import schaefinik.time.request.project.ProjectCreateRequest;
+import schaefinik.time.response.DataMapper;
+import schaefinik.time.response.project.ProjectDTO;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -24,28 +27,38 @@ public class ProjectService {
 
 	private final ProjectRepository projectRepository;
 	private final UserService userService;
+	private final DataMapper dataMapper;
 
 	@Transactional(readOnly = true)
-	public List<ProjectResponse> findAllAssignedToCurrentUser() {
+	public List<ProjectDTO> findAllAssignedToCurrentUser() {
 		TimeUserModel currentUser = userService.getCurrentUser();
-		return projectRepository.findByAssignedUsersContainingAndActiveIsTrue(currentUser)
-				.stream()
-				.map(this::mapToResponse)
+		List<ProjectModel> assignedProjects = projectRepository.findByAssignedUsersContainingAndActiveIsTrue(currentUser);
+		List<ProjectDTO> managedProjectsDTO = this.findAllManagedByCurrentUser();
+		List<ProjectDTO> assignedProjectsDTO =
+				Stream.of(assignedProjects)
+						.flatMap(Collection::stream)
+						.map(this::mapToDTO)
+						.toList();
+		return Stream.of(
+						assignedProjectsDTO,
+						managedProjectsDTO)
+				.flatMap(Collection::stream)
 				.toList();
 	}
 
 	@Transactional(readOnly = true)
-	public List<ProjectResponse> findAllManagedByCurrentUser() {
+	public List<ProjectDTO> findAllManagedByCurrentUser() {
 		TimeUserModel currentUser = userService.getCurrentUser();
 		return projectRepository.findByManager(currentUser)
 				.stream()
-				.map(this::mapToResponse)
+				.sorted((project1, project2) -> Boolean.compare(project2.isActive(), project1.isActive()))
+				.map(this::mapToDTO)
 				.toList();
 	}
 
 	@Transactional(readOnly = true)
-	public ProjectResponse getProjectData(Long id) {
-		return mapToResponse(getProject(id));
+	public ProjectDTO getProjectData(Long id) {
+		return mapToDTO(getProject(id));
 	}
 
 	protected ProjectModel getProject(Long id) {
@@ -54,7 +67,7 @@ public class ProjectService {
 	}
 
 	@Transactional
-	public ProjectResponse create(ProjectRequest request) {
+	public ProjectDTO create(ProjectCreateRequest request) {
 		TimeUserModel currentUser = userService.getCurrentUser();
 
 		ProjectModel project = ProjectModel.builder()
@@ -63,14 +76,19 @@ public class ProjectService {
 				.manager(currentUser)
 				.active(true)
 				.hourlyRate(request.getHourlyRate() != null ? request.getHourlyRate() : BigDecimal.ZERO)
+				.internalHourlyRate(request.getInternalHourlyRate() != null ? request.getInternalHourlyRate() : BigDecimal.ZERO)
 				.currency(request.getCurrency() != null ? request.getCurrency() : CurrencyCode.EUR)
 				.build();
 
-		return mapToResponse(projectRepository.save(project));
+		if (request.getUserIds() != null) {
+			project.setAssignedUsers(userService.findAllByIds(request.getUserIds()));
+		}
+
+		return mapToDTO(projectRepository.save(project));
 	}
 
 	@Transactional
-	public ProjectResponse update(Long id, ProjectRequest request) {
+	public ProjectDTO update(Long id, ProjectChangeRequest request) {
 		ProjectModel project = getProject(id);
 		verifyManagerAuthority(project);
 
@@ -80,23 +98,16 @@ public class ProjectService {
 		if (request.getHourlyRate() != null) {
 			project.setHourlyRate(request.getHourlyRate());
 		}
+		if (request.getInternalHourlyRate() != null) {
+			project.setInternalHourlyRate(request.getInternalHourlyRate());
+		}
 		if (request.getCurrency() != null) {
 			project.setCurrency(request.getCurrency());
 		}
-
-		return mapToResponse(projectRepository.save(project));
-	}
-
-	@Transactional
-	public ProjectResponse assignUsers(Long projectId, Set<Long> userIds) {
-		ProjectModel project = getProject(projectId);
-		verifyManagerAuthority(project);
-
-		Set<TimeUserModel> usersToAdd = userService.findAllByIds(userIds);
-
-		project.setAssignedUsers(usersToAdd);
-
-		return mapToResponse(projectRepository.save(project));
+		if (request.getAssignedUserIds() != null) {
+			project.setAssignedUsers(userService.findAllByIds(request.getAssignedUserIds()));
+		}
+		return mapToDTO(projectRepository.save(project));
 	}
 
 	@Transactional
@@ -116,14 +127,7 @@ public class ProjectService {
 		}
 	}
 
-	private ProjectResponse mapToResponse(ProjectModel project) {
-		return new ProjectResponse(
-				project.getId(),
-				project.getName(),
-				project.getDescription(),
-				project.isActive(),
-				project.getHourlyRate(),
-				project.getCurrency()
-		);
+	private ProjectDTO mapToDTO(ProjectModel projectModel) {
+		return dataMapper.toProjectDto(projectModel);
 	}
 }

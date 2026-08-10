@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue'
-import { useAuthStore } from '@/stores/authStore' 
+import { useUserStore } from '@/stores/userStore' 
 
-const authStore = useAuthStore()
+const userStore = useUserStore()
 
 const anonymousRouterLinks = [
   { name: 'Home', path: '/' },
@@ -26,7 +26,7 @@ const adminRouterLinks = [
 ]
 
 const sidebarLinks = computed(() => {
-  const role = authStore.user?.role 
+  const role = userStore.currentUser?.role 
 
   if (role === 'ROLE_ADMIN') {
     return [...userRouterLinks, ...managerRouterLinks, ...adminRouterLinks]

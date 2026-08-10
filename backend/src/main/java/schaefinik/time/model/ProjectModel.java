@@ -44,6 +44,10 @@ public class ProjectModel {
 
 	@Column(precision = 10, scale = 2, nullable = false)
 	@Builder.Default
+	private BigDecimal internalHourlyRate = BigDecimal.ZERO;
+
+	@Column(precision = 10, scale = 2, nullable = false)
+	@Builder.Default
 	private BigDecimal hourlyRate = BigDecimal.ZERO;
 
 	@Enumerated(EnumType.STRING)

@@ -6,7 +6,9 @@ import schaefinik.time.enums.Role;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -46,4 +48,12 @@ public class TimeUserModel {
 	@ManyToMany(mappedBy = "assignedUsers", fetch = FetchType.LAZY)
 	@Builder.Default
 	private Set<ProjectModel> assignedProjects = new HashSet<>();
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "manager_id")
+	private TimeUserModel manager;
+
+	@OneToMany(mappedBy = "manager")
+	@Builder.Default
+	private List<TimeUserModel> subordinates = new ArrayList<>();
 }

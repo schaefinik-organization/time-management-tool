@@ -56,7 +56,8 @@
       <div v-else class="entries-list">
         <div v-for="entry in timeEntryStore.entries" :key="entry.id" class="entry-card">
           <div class="entry-header">
-            <strong>{{ entry.projectName }}</strong>
+            <strong>{{ entry.project?.name }}</strong>
+            <strong>{{ entry.project?.id }}</strong>
             <button class="btn-delete" @click="timeEntryStore.removeEntry(entry.id)">&times;</button>
           </div>
           <div class="entry-details">
@@ -96,7 +97,7 @@ const formData = reactive({
 })
 
 onMounted(() => {
-  projectStore.loadProjects()
+  projectStore.loadAssignedProjects()
   timeEntryStore.loadMyEntries()
 })
 

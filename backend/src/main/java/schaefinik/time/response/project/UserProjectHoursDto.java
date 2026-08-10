@@ -1,4 +1,4 @@
-package schaefinik.time.response;
+package schaefinik.time.response.project;
 
 import lombok.Getter;
 import lombok.Setter;

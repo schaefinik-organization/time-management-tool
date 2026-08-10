@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import schaefinik.time.request.TimeEntryRequest;
-import schaefinik.time.response.TimeEntryResponse;
+import schaefinik.time.response.entry.TimeEntryDTO;
 import schaefinik.time.service.TimeEntryService;
 
 import java.util.List;
@@ -21,19 +21,19 @@ public class TimeEntryController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<TimeEntryResponse>> getMyTimeEntries() {
+	public ResponseEntity<List<TimeEntryDTO>> getMyTimeEntries() {
 		return ResponseEntity.ok(timeEntryService.getMyTimeEntries());
 	}
 
 	@PostMapping
-	public ResponseEntity<TimeEntryResponse> createEntry(@Valid @RequestBody TimeEntryRequest request) {
-		TimeEntryResponse created = timeEntryService.createEntry(request);
+	public ResponseEntity<TimeEntryDTO> createEntry(@Valid @RequestBody TimeEntryRequest request) {
+		TimeEntryDTO created = timeEntryService.createEntry(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(created);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<TimeEntryResponse> updateEntry(@PathVariable Long id, @Valid @RequestBody TimeEntryRequest request) {
-		TimeEntryResponse updated = timeEntryService.updateEntry(id, request);
+	public ResponseEntity<TimeEntryDTO> updateEntry(@PathVariable Long id, @Valid @RequestBody TimeEntryRequest request) {
+		TimeEntryDTO updated = timeEntryService.updateEntry(id, request);
 		return ResponseEntity.ok(updated);
 	}
 

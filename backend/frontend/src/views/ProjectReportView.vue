@@ -3,7 +3,6 @@
     <div class="header-actions">
       <h1>Projekt-Auswertungen</h1>
       
-      <!-- Filter-Bereich -->
       <div class="filters">
         <select v-model="selectedProject" @change="loadReportData">
           <option value="" disabled>Projekt wählen...</option>
@@ -12,16 +11,13 @@
           </option>
         </select>
 
-        <!-- HTML5 Month-Picker generiert direkt das 'YYYY-MM' Format! -->
         <input type="month" v-model="selectedMonth" @change="loadReportData" />
       </div>
     </div>
 
-    <!-- Status Anzeigen -->
     <div v-if="isLoading" class="loading-state">Lade Auswertungen...</div>
     <div v-else-if="error" class="error-box">{{ error }}</div>
     
-    <!-- Wenn kein Projekt ausgewählt ist -->
     <div v-else-if="!selectedProject" class="empty-state">
       Bitte wähle ein Projekt aus, um den Report zu sehen.
     </div>
@@ -33,7 +29,7 @@
       <div class="chart-card">
         <h3>Auswertung: {{ chartMode === 'hours' ? 'Stunden' : 'Umsatz' }}</h3>
         <!-- Der Toggle für Epic 5 -->
-          <div class="toggle-group" v-if="currentProject.hourlyRate > 0">
+          <div class="toggle-group">
             <button 
               :class="{ active: chartMode === 'hours' }" 
               @click="chartMode = 'hours'">Stunden</button>
@@ -64,13 +60,17 @@
             <tr>
               <th>Mitarbeiter</th>
               <th class="text-right">Gesamtstunden</th>
-              <th class="text-right" v-if="currentProject.hourlyRate > 0">Kosten</th>
+              <th class="text-right">Interne Kosten</th>
+              <th class="text-right">Externe Kosten</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in reportData" :key="row.userId">
               <td>{{ row.username }}</td>
               <td class="text-right">{{ row.totalHours.toFixed(2) }} h</td>
+              <td class="text-right" v-if="currentProject.hourlyRate > 0">
+               {{ formatCurrency(row.totalHours * currentProject.hourlyRate) }}
+              </td>
               <td class="text-right" v-if="currentProject.hourlyRate > 0">
                 {{ formatCurrency(row.totalHours * currentProject.hourlyRate) }}
               </td>
@@ -83,6 +83,9 @@
               <td class="text-right" v-if="currentProject.hourlyRate > 0">
                 <strong>{{ formatCurrency(totalProjectCost) }}</strong>
               </td>
+              <td class="text-right" v-if="currentProject.internalHourlyRate > 0">
+                <strong>{{ formatCurrency(totalInternalProjectCost) }}</strong>
+              </td>
             </tr>
           </tfoot>
         </table>
@@ -93,8 +96,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
-import { fetchProjectHoursReportApi } from '@/api/projects'
+import { exportProjectExcelApi,exportProjectPdfApi, fetchProjectHoursReportApi } from '@/api/projects'
 
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 import { Bar } from 'vue-chartjs'
@@ -102,17 +106,19 @@ import { Bar } from 'vue-chartjs'
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
 const projectStore = useProjectStore()
+const route = useRoute()
 
 const selectedProject = ref('')
-const selectedMonth = ref('') // Format: 'YYYY-MM'
+const selectedMonth = ref('')
 const reportData = ref([])
 const isLoading = ref(false)
 const isExporting = ref(false) 
 const error = ref(null)
-const chartMode = ref('hours') // Mögliche Werte: 'hours' oder 'costs'
+const chartMode = ref('hours')
 
 onMounted(() => {
-  projectStore.loadProjects()
+  projectStore.loadManagedProjects()
+  selectedProject.value = route.params.id
 })
 
 const loadReportData = async () => {
@@ -134,14 +140,11 @@ const loadReportData = async () => {
 const totalProjectHours = computed(() => {
   return reportData.value.reduce((sum, item) => sum + item.totalHours, 0)
 })
-// --- Epic 5: Finanz-Berechnungen ---
 
-// 1. Holt das aktuell ausgewählte komplette Projekt aus dem Pinia Store
 const currentProject = computed(() => {
   return projectStore.projects.find(p => p.id === selectedProject.value) || {}
 })
 
-// 2. Hilfsfunktion für saubere Währungsformatierung (z.B. "1.250,00 €")
 const formatCurrency = (value) => {
   const currency = currentProject.value.currency || 'EUR'
   return new Intl.NumberFormat('de-DE', { 
@@ -150,13 +153,15 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 
-// 3. Berechnet die Gesamtkosten des Projekts für den Footer
+const totalInternalProjectCost = computed(() => {
+  const rate = currentProject.value.internalHourlyRate || 0
+  return totalProjectHours.value * rate
+})
+
 const totalProjectCost = computed(() => {
   const rate = currentProject.value.hourlyRate || 0
   return totalProjectHours.value * rate
 })
-
-// --- Anpassung des Charts für Epic 5 ---
 
 const chartData = computed(() => {
   const isCostMode = chartMode.value === 'costs'
@@ -167,7 +172,6 @@ const chartData = computed(() => {
     datasets: [
       {
         label: isCostMode ? 'Umsatz' : 'Stunden',
-        // Farbwechsel: Blau für Stunden, Grün für Geld
         backgroundColor: isCostMode ? '#27ae60' : '#3498db',
         borderRadius: 4,
         data: reportData.value.map(item => {
@@ -214,8 +218,6 @@ const handleExport = async (type) => {
 
   try {
     let response;
-    
-    // API Call basierend auf dem Typ
     if (type === 'excel') {
       response = await exportProjectExcelApi(selectedProject.value, selectedMonth.value || null)
     } else {
@@ -225,8 +227,6 @@ const handleExport = async (type) => {
     triggerFileDownload(response)
     
   } catch (err) {
-    // Da wir responseType: 'blob' nutzen, ist das Error-Objekt bei einem Backend-Fehler (z.B. 403) auch ein Blob!
-    // Wir müssen es erst wieder zu Text konvertieren, um unsere saubere JSON-Fehlermeldung zu lesen.
     if (err.response?.data instanceof Blob) {
       const text = await err.response.data.text()
       const jsonError = JSON.parse(text)
@@ -239,31 +239,23 @@ const handleExport = async (type) => {
   }
 }
 
-// Die Hilfsfunktion, um den Blob als Datei zu speichern
 const triggerFileDownload = (response) => {
-  // 1. Dateinamen aus dem Header extrahieren (falls vorhanden)
   let filename = 'report_download'
   const disposition = response.headers['content-disposition']
   if (disposition && disposition.indexOf('filename=') !== -1) {
-    // Regex, um den Namen zwischen den Anführungszeichen zu holen
     const matches = /filename="([^"]*)"/.exec(disposition)
     if (matches != null && matches[1]) {
       filename = matches[1]
     }
   }
 
-  // 2. Blob in eine temporäre URL umwandeln
   const blob = new Blob([response.data], { type: response.headers['content-type'] })
   const url = window.URL.createObjectURL(blob)
-
-  // 3. Unsichtbaren Link erstellen und Klick simulieren
   const link = document.createElement('a')
   link.href = url
   link.setAttribute('download', filename)
   document.body.appendChild(link)
   link.click()
-
-  // 4. Aufräumen (verhindert Memory Leaks im Browser)
   link.parentNode.removeChild(link)
   window.URL.revokeObjectURL(url)
 }
