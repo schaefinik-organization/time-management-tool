@@ -15,12 +15,11 @@ body:
       label: 📂 Epic / Themenbereich
       description: Zu welcher Phase gehört dieses Feature?
       options:
-        - "Epic 1: Rollen & Projektzuweisung"
-        - "Epic 2: Zeiterfassung & Overlap-Schutz"
-        - "Epic 3: Dashboards & Auswertungen"
-        - "Epic 4: Exporte & Reports"
-        - "Epic 5: Billing & Finanzen"
-        - "Infrastruktur / CI/CD"
+        - "Epic 1: Qualitätssicherung & Alpha-Freeze"
+        - "Epic 2: Refinement der Web-Reports"
+        - "Epic 3: Daten-Export (Excel/PDF)"
+        - "Epic 4: Zukünftige Features (Backlog)"
+        - "Infrastruktur / CI/CD & Deployment"
     validations:
       required: true
 
@@ -36,7 +35,7 @@ body:
     id: goal
     attributes:
       label: 🎯 möchte ich... (Ziel)
-      placeholder: "z.B. neue Projekte anlegen können"
+      placeholder: "z.B. ein Kuchendiagramm der Projektzeiten sehen"
     validations:
       required: true
 
@@ -44,7 +43,7 @@ body:
     id: reason
     attributes:
       label: 💡 damit... (Mehrwert/Grund)
-      placeholder: "z.B. ich meine Arbeitsbereiche strukturieren kann"
+      placeholder: "z.B. ich Budgets schneller erfassen und auswerten kann"
     validations:
       required: true
 
@@ -63,15 +62,16 @@ body:
     id: technical_notes
     attributes:
       label: 🛠️ Technische Notizen & Architektur (Optional)
-      description: Ideen zur Implementierung (Spring Boot Endpoints, Vue Komponenten, Datenbankanpassungen)
-      placeholder: "z.B. Nutze LocalDateTime für die Overlap-Validation; Erstelle einen neuen Vue-Router-Guard..."
+      description: Ideen zur Implementierung (Spring Boot Endpoints, Vue Komponenten, Bibliotheken)
+      placeholder: "z.B. Nutze vue-chartjs für das Frontend; Erstelle einen GET-Endpoint für die PDF-Generierung..."
 
   - type: checkboxes
     id: dod
     attributes:
       label: 🏁 Definition of Done (DoD)
       options:
-        - label: Unit-Tests (JUnit/Mockito) sind geschrieben und grün
-        - label: Frontend-Integration ist lokal erfolgreich getestet
-        - label: Code ist formatiert und erfüllt die Linting-Regeln
-        - label: Docker-Container bauen erfolgreich
+        - label: Backend-Tests (JUnit/Mockito) sind geschrieben und grün
+        - label: Frontend-Tests (Vitest) decken neue Logik ab
+        - label: Code hat die statische Analyse (SonarQube) bestanden
+        - label: API-Änderungen sind in der Swagger-UI dokumentiert
+        - label: Docker-Container bauen weiterhin erfolgreich
