@@ -37,6 +37,7 @@ public class UserService {
 				.toList();
 	}
 
+	@Transactional
 	public List<TimeUserDTO> findAllSubordinatesByCurrentUser() {
 		TimeUserModel currentUser = getCurrentUser();
 		return findAllByIds(
@@ -47,7 +48,7 @@ public class UserService {
 		)
 				.stream()
 				.map(this::mapToDTO)
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	public TimeUserModel getUser(Long userId) {
@@ -70,30 +71,33 @@ public class UserService {
 		return mapToDTO(user);
 	}
 
-	@Transactional
-	public boolean createEmployee(UserCreateRequest request) {
-		TimeUserModel currentUser = getCurrentUser();
+	public Set<TimeUserModel> findAllByIds(Set<Long> userIds) {
+		return userRepository.findAllByIdIn(userIds);
+	}
 
-		// Nur Manager (und Admins) dürfen das
+	@Transactional
+	public TimeUserDTO createEmployee(UserCreateRequest request) {
+		TimeUserModel currentUser = getCurrentUser();
 		if (currentUser.getRole() == Role.ROLE_USER) {
 			throw new AccessDeniedException("Normale User dürfen keine Accounts anlegen.");
 		}
-
-		TimeUserModel newUser = new TimeUserModel();
-		newUser.setUsername(request.getUsername());
-		newUser.setEmail(request.getEmail());
-		newUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-		newUser.setRole(Role.ROLE_USER);
+		checkUsername(request.getUsername());
+		checkEmail(request.getEmail());
+		TimeUserModel newUser = TimeUserModel.builder()
+				.username(request.getUsername())
+				.email(request.getEmail())
+				.passwordHash(passwordEncoder.encode(request.getPassword()))
+				.role(Role.ROLE_USER)
+				.build();
 
 		if (currentUser.getRole() == Role.ROLE_MANAGER) {
 			newUser.setManager(currentUser);
 		}
 		//send email
-
-		userRepository.save(newUser);
-		return true;
+		return mapToDTO(userRepository.save(newUser));
 	}
 
+	//TODO: implement Feature in future releases
 	@Transactional
 	public boolean assignUserToManager(Long userId, Long managerId) {
 		TimeUserModel currentUser = getCurrentUser();
@@ -118,23 +122,27 @@ public class UserService {
 	}
 
 	public boolean createUser(UserCreateRequest request) {
+		TimeUserModel currentUser = getCurrentUser();
+		if (currentUser.getRole() != Role.ROLE_ADMIN) {
+			throw new AccessDeniedException("Nur Admins dürfen neue User anlegen.");
+		}
 		checkUsername(request.getUsername());
 		checkEmail(request.getEmail());
-
-		Role role = Role.ROLE_USER;
 		TimeUserModel user = TimeUserModel.builder()
 				.username(request.getUsername())
 				.email(request.getEmail())
 				.passwordHash(passwordEncoder.encode(request.getPassword()))
-				.role(role)
+				.role(Role.ROLE_USER)
 				.enabled(true)
 				.build();
 
 		userRepository.save(user);
+
 		//send email
 		return true;
 	}
 
+	//TODO implement and test feature in frontend
 	public void changePassword(TimeUserPrincipal principal, AccountRequest request) {
 		TimeUserModel user = getUser(principal.getId());
 
@@ -146,13 +154,20 @@ public class UserService {
 		userRepository.save(user);
 	}
 
-
 	public void deleteUser(Long id) {
+		TimeUserModel currentUser = getCurrentUser();
+		if (currentUser.getRole() != Role.ROLE_ADMIN) {
+			throw new AccessDeniedException("Nur Admins dürfen User löschen.");
+		}
 		userRepository.deleteById(id);
 	}
 
 	public boolean updateUser(Long id, UserChangeRequest request) {
+		TimeUserModel currentUser = getCurrentUser();
 		TimeUserModel user = getUser(id);
+		if (currentUser.getRole() != Role.ROLE_ADMIN && currentUser != user) {
+			throw new AccessDeniedException("Nur Admins dürfen andere User bearbeiten.");
+		}
 
 		if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
 			checkUsername(request.getUsername());
@@ -200,9 +215,5 @@ public class UserService {
 
 	private TimeUserDTO mapToDTO(TimeUserModel user) {
 		return dataMapper.toUserDto(user);
-	}
-
-	public Set<TimeUserModel> findAllByIds(Set<Long> userIds) {
-		return userRepository.findAllByIdIn(userIds);
 	}
 }

@@ -3,10 +3,16 @@ package schaefinik.time.request.user;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import schaefinik.time.enums.Role;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserChangeRequest {
 	@NotBlank
 	String username;

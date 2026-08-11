@@ -1,4 +1,4 @@
-package schaefinik.time.config.controller;
+package schaefinik.time.controller;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
