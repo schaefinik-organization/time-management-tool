@@ -31,10 +31,14 @@ class UserServiceTest implements WithAssertions {
 	private static final Long MANAGER_ID = 2L;
 	private static final Long USER_ID = 3L;
 	private static final Long SUBORDINATE_USER_ID = 4L;
-	private static final String USER_CREATE_REQUEST_USERNAME = "createUser";
-	private static final String USER_CREATE_REQUEST_EMAIL = "createUser@email.adress";
-	private static final String USER_CREATE_REQUEST_PASSWORD = "createUserPassword";
+	private static final String USERNAME = "createUser";
+	private static final String EMAIL = "createUser@email.adress";
+	private static final String PASSWORD = "createUserPassword";
 	private final TimeUserDTO userDTO = new TimeUserDTO();
+	private final TimeUserModel
+			currentUser = new TimeUserModel();
+	private final TimeUserModel otherUser = new TimeUserModel();
+
 	@InjectMocks
 	private UserService sut;
 	@Mock
@@ -47,20 +51,20 @@ class UserServiceTest implements WithAssertions {
 	private TimeUserPrincipal principal;
 	@Captor
 	private ArgumentCaptor<TimeUserModel> userCaptor;
-	private TimeUserModel user = new TimeUserModel();
+
 	private List<TimeUserModel> allUsers;
 
 	@BeforeEach
 	void setUp() {
-		user.setId(USER_ID);
-		user.setRole(Role.ROLE_USER);
-		allUsers = List.of(user);
+		currentUser.setId(USER_ID);
+		currentUser.setRole(Role.ROLE_USER);
+		allUsers = List.of(currentUser);
 	}
 
 	@Test
 	void findAllUsers_shouldReturnAllUsers() {
 		when(userRepository.findAll()).thenReturn(allUsers);
-		when(dataMapper.toUserDto(user)).thenReturn(userDTO);
+		when(dataMapper.toUserDto(currentUser)).thenReturn(userDTO);
 
 		var result = sut.findAllUsers();
 
@@ -70,14 +74,11 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void findAllSubordinatesByCurrentUser_shouldReturnAllSubordinates() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(USER_ID);
-			when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(USER_ID, Role.ROLE_USER)) {
 			TimeUserModel subordinate = new TimeUserModel();
 			subordinate.setId(SUBORDINATE_USER_ID);
 			List<TimeUserModel> allSubordinates = List.of(subordinate);
-			user.setSubordinates(allSubordinates);
+			currentUser.setSubordinates(allSubordinates);
 			when(userRepository.findAllByIdIn(Set.of(SUBORDINATE_USER_ID))).thenReturn(Set.of(subordinate));
 			when(dataMapper.toUserDto(subordinate)).thenReturn(userDTO);
 
@@ -89,34 +90,28 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void getUser_shouldReturnUserID() {
-		when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+		when(userRepository.findById(USER_ID)).thenReturn(Optional.of(currentUser));
 
 		var result = sut.getUser(USER_ID);
 
-		assertThat(result).isEqualTo(user);
+		assertThat(result).isEqualTo(currentUser);
 		verify(userRepository).findById(USER_ID);
 	}
 
 	@Test
 	void getCurrentUser_shouldReturnCurrentUser() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(USER_ID);
-			when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(USER_ID, Role.ROLE_USER)) {
 
 			var result = sut.getCurrentUser();
 
-			assertThat(result).isEqualTo(user);
+			assertThat(result).isEqualTo(currentUser);
 		}
 	}
 
 	@Test
 	void getCurrentUserData_shouldReturnCurrentUserData() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(USER_ID);
-			when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-			when(dataMapper.toUserDto(user)).thenReturn(userDTO);
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(USER_ID, Role.ROLE_USER)) {
+			when(dataMapper.toUserDto(currentUser)).thenReturn(userDTO);
 
 			var result = sut.getCurrentUserData();
 
@@ -126,75 +121,32 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void createEmployee_asAdmin_shouldCreateEmployee() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(ADMIN_ID);
-			when(userRepository.findById(ADMIN_ID)).thenReturn(Optional.of(user));
-			user.setId(ADMIN_ID);
-			user.setRole(Role.ROLE_ADMIN);
-			UserCreateRequest request = UserCreateRequest.builder()
-					.username(USER_CREATE_REQUEST_USERNAME)
-					.email(USER_CREATE_REQUEST_EMAIL)
-					.password(USER_CREATE_REQUEST_PASSWORD)
-					.role(null)
-					.enabled(true)
-					.build();
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(ADMIN_ID, Role.ROLE_ADMIN)) {
+			UserCreateRequest request = buildUserCreateRequest();
 
 			sut.createEmployee(request);
 
-			verify(userRepository).save(userCaptor.capture());
-			verify(passwordEncoder).encode(USER_CREATE_REQUEST_PASSWORD);
-			TimeUserModel savedUser = userCaptor.getValue();
-			assertThat(savedUser.getUsername()).isEqualTo(USER_CREATE_REQUEST_USERNAME);
-			assertThat(savedUser.getEmail()).isEqualTo(USER_CREATE_REQUEST_EMAIL);
-			assertThat(savedUser.getRole()).isEqualTo(Role.ROLE_USER);
+			TimeUserModel savedUser = verifyCreateSavedUser(request);
 			assertThat(savedUser.getManager()).isNull();
 		}
 	}
 
 	@Test
 	void createEmployee_asManager_shouldCreateEmployee() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(MANAGER_ID);
-			when(userRepository.findById(MANAGER_ID)).thenReturn(Optional.of(user));
-			user.setId(MANAGER_ID);
-			user.setRole(Role.ROLE_MANAGER);
-			UserCreateRequest request = UserCreateRequest.builder()
-					.username(USER_CREATE_REQUEST_USERNAME)
-					.email(USER_CREATE_REQUEST_EMAIL)
-					.password(USER_CREATE_REQUEST_PASSWORD)
-					.role(null)
-					.enabled(true)
-					.build();
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(MANAGER_ID, Role.ROLE_MANAGER)) {
+			UserCreateRequest request = buildUserCreateRequest();
 
 			sut.createEmployee(request);
 
-			verify(userRepository).save(userCaptor.capture());
-			verify(passwordEncoder).encode(USER_CREATE_REQUEST_PASSWORD);
-			TimeUserModel savedUser = userCaptor.getValue();
-			assertThat(savedUser.getUsername()).isEqualTo(USER_CREATE_REQUEST_USERNAME);
-			assertThat(savedUser.getEmail()).isEqualTo(USER_CREATE_REQUEST_EMAIL);
-			assertThat(savedUser.getRole()).isEqualTo(Role.ROLE_USER);
-			assertThat(savedUser.getManager()).isEqualTo(user);
+			TimeUserModel savedUser = verifyCreateSavedUser(request);
+			assertThat(savedUser.getManager()).isEqualTo(currentUser);
 		}
 	}
 
 	@Test
 	void createEmployee_asUser_shouldThrowAccessDeniedException() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(USER_ID);
-			when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-			user.setId(USER_ID);
-			user.setRole(Role.ROLE_USER);
-			UserCreateRequest request = UserCreateRequest.builder()
-					.username(USER_CREATE_REQUEST_USERNAME)
-					.email(USER_CREATE_REQUEST_EMAIL)
-					.password(USER_CREATE_REQUEST_PASSWORD)
-					.role(null)
-					.enabled(true)
-					.build();
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(USER_ID, Role.ROLE_USER)) {
+			UserCreateRequest request = buildUserCreateRequest();
 
 			assertThatThrownBy(() -> sut.createEmployee(request))
 					.isInstanceOf(AccessDeniedException.class)
@@ -205,47 +157,20 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void createUser_asAdmin_shouldCreateUser() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(ADMIN_ID);
-			when(userRepository.findById(ADMIN_ID)).thenReturn(Optional.of(user));
-			user.setId(ADMIN_ID);
-			user.setRole(Role.ROLE_ADMIN);
-			UserCreateRequest request = UserCreateRequest.builder()
-					.username(USER_CREATE_REQUEST_USERNAME)
-					.email(USER_CREATE_REQUEST_EMAIL)
-					.password(USER_CREATE_REQUEST_PASSWORD)
-					.role(null)
-					.enabled(true)
-					.build();
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(ADMIN_ID, Role.ROLE_ADMIN)) {
+			UserCreateRequest request = buildUserCreateRequest();
 
 			sut.createUser(request);
 
-			verify(userRepository).save(userCaptor.capture());
-			verify(passwordEncoder).encode(USER_CREATE_REQUEST_PASSWORD);
-			TimeUserModel savedUser = userCaptor.getValue();
-			assertThat(savedUser.getUsername()).isEqualTo(USER_CREATE_REQUEST_USERNAME);
-			assertThat(savedUser.getEmail()).isEqualTo(USER_CREATE_REQUEST_EMAIL);
-			assertThat(savedUser.getRole()).isEqualTo(Role.ROLE_USER);
+			TimeUserModel savedUser = verifyCreateSavedUser(request);
 			assertThat(savedUser.getManager()).isNull();
 		}
 	}
 
 	@Test
 	void createUser_asManager_shouldThrowAccessDeniedException() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(MANAGER_ID);
-			when(userRepository.findById(MANAGER_ID)).thenReturn(Optional.of(user));
-			user.setId(MANAGER_ID);
-			user.setRole(Role.ROLE_MANAGER);
-			UserCreateRequest request = UserCreateRequest.builder()
-					.username(USER_CREATE_REQUEST_USERNAME)
-					.email(USER_CREATE_REQUEST_EMAIL)
-					.password(USER_CREATE_REQUEST_PASSWORD)
-					.role(null)
-					.enabled(true)
-					.build();
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(MANAGER_ID, Role.ROLE_MANAGER)) {
+			UserCreateRequest request = buildUserCreateRequest();
 
 			assertThatThrownBy(() -> sut.createUser(request))
 					.isInstanceOf(AccessDeniedException.class)
@@ -255,19 +180,8 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void createUser_asUser_shouldThrowAccessDeniedException() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(USER_ID);
-			when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-			user.setId(USER_ID);
-			user.setRole(Role.ROLE_USER);
-			UserCreateRequest request = UserCreateRequest.builder()
-					.username(USER_CREATE_REQUEST_USERNAME)
-					.email(USER_CREATE_REQUEST_EMAIL)
-					.password(USER_CREATE_REQUEST_PASSWORD)
-					.role(null)
-					.enabled(true)
-					.build();
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(USER_ID, Role.ROLE_USER)) {
+			UserCreateRequest request = buildUserCreateRequest();
 
 			assertThatThrownBy(() -> sut.createUser(request))
 					.isInstanceOf(AccessDeniedException.class)
@@ -277,13 +191,7 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void deleteUser_asAdmin_shouldDeleteUser() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(ADMIN_ID);
-			when(userRepository.findById(ADMIN_ID)).thenReturn(Optional.of(user));
-			user.setId(ADMIN_ID);
-			user.setRole(Role.ROLE_ADMIN);
-
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(ADMIN_ID, Role.ROLE_ADMIN)) {
 			sut.deleteUser(USER_ID);
 
 			verify(userRepository).deleteById(USER_ID);
@@ -292,12 +200,7 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void deleteUser_asManager_shouldThrowAccessDeniedException() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(MANAGER_ID);
-			when(userRepository.findById(MANAGER_ID)).thenReturn(Optional.of(user));
-			user.setId(MANAGER_ID);
-			user.setRole(Role.ROLE_MANAGER);
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(MANAGER_ID, Role.ROLE_MANAGER)) {
 
 			assertThatThrownBy(() -> sut.deleteUser(USER_ID))
 					.isInstanceOf(AccessDeniedException.class)
@@ -307,12 +210,7 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void deleteUser_asUser_shouldThrowAccessDeniedException() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(USER_ID);
-			when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-			user.setId(USER_ID);
-			user.setRole(Role.ROLE_USER);
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(USER_ID, Role.ROLE_USER)) {
 
 			assertThatThrownBy(() -> sut.deleteUser(USER_ID))
 					.isInstanceOf(AccessDeniedException.class)
@@ -323,52 +221,140 @@ class UserServiceTest implements WithAssertions {
 
 	@Test
 	void updateUser_asAdmin_emailExists_shouldThrowIllegalArgumentException() {
-		try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
-			mockedSecurityUtil.when(SecurityUtil::currentUser).thenReturn(principal);
-			when(principal.getId()).thenReturn(ADMIN_ID);
-			when(userRepository.findById(ADMIN_ID)).thenReturn(Optional.of(user));
-			user.setId(ADMIN_ID);
-			user.setRole(Role.ROLE_ADMIN);
-			when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-			when(userRepository.existsByEmail(USER_CREATE_REQUEST_EMAIL)).thenReturn(true);
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(ADMIN_ID, Role.ROLE_ADMIN)) {
+			when(userRepository.existsByEmail(EMAIL)).thenReturn(true);
+			otherUser.setId(SUBORDINATE_USER_ID);
+			otherUser.setRole(Role.ROLE_USER);
+			when(userRepository.findById(SUBORDINATE_USER_ID)).thenReturn(Optional.of(otherUser));
 
-			UserChangeRequest request = UserChangeRequest.builder()
-					.username(USER_CREATE_REQUEST_USERNAME)
-					.email(USER_CREATE_REQUEST_EMAIL)
-					.password(USER_CREATE_REQUEST_PASSWORD)
-					.role(Role.ROLE_USER)
-					.enabled(true)
-					.build();
+			UserChangeRequest request = buildUserChangeRequest();
 
-			assertThatThrownBy(() -> sut.updateUser(USER_ID, request))
+			assertThatThrownBy(() -> sut.updateUser(SUBORDINATE_USER_ID, request))
 					.isInstanceOf(IllegalArgumentException.class)
-					.hasMessage("Nur Admins dürfen neue User anlegen.");
+					.hasMessage("Email already exists!");
 		}
 	}
 
 	@Test
 	void updateUser_asAdmin_usernameExists_shouldThrowIllegalArgumentException() {
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(ADMIN_ID, Role.ROLE_ADMIN)) {
+			when(userRepository.existsByUsername(USERNAME)).thenReturn(true);
+			otherUser.setId(SUBORDINATE_USER_ID);
+			otherUser.setRole(Role.ROLE_USER);
+			when(userRepository.findById(SUBORDINATE_USER_ID)).thenReturn(Optional.of(otherUser));
 
+			UserChangeRequest request = buildUserChangeRequest();
+
+			assertThatThrownBy(() -> sut.updateUser(SUBORDINATE_USER_ID, request))
+					.isInstanceOf(IllegalArgumentException.class)
+					.hasMessage("Username already exists!");
+		}
 	}
 
 	@Test
 	void updateUser_asAdmin_shouldUpdateUser() {
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(ADMIN_ID, Role.ROLE_ADMIN)) {
+			UserChangeRequest request = buildUserChangeRequest();
+			otherUser.setId(SUBORDINATE_USER_ID);
+			otherUser.setRole(Role.ROLE_USER);
+			when(userRepository.findById(SUBORDINATE_USER_ID)).thenReturn(Optional.of(otherUser));
 
+			sut.updateUser(SUBORDINATE_USER_ID, request);
+
+			verify(userRepository).save(otherUser);
+
+		}
 	}
 
 	@Test
 	void updateUser_asManager_shouldThrowAccessDeniedException() {
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(MANAGER_ID, Role.ROLE_MANAGER)) {
+			otherUser.setId(SUBORDINATE_USER_ID);
+			otherUser.setRole(Role.ROLE_USER);
+			when(userRepository.findById(SUBORDINATE_USER_ID)).thenReturn(Optional.of(otherUser));
 
+			UserChangeRequest request = buildUserChangeRequest();
+
+			assertThatThrownBy(() -> sut.updateUser(SUBORDINATE_USER_ID, request))
+					.isInstanceOf(AccessDeniedException.class)
+					.hasMessage("Nur Admins dürfen andere User bearbeiten.");
+		}
 	}
 
 	@Test
 	void updateUser_asUser_shouldThrowAccessDeniedException() {
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(USER_ID, Role.ROLE_USER)) {
+			otherUser.setId(SUBORDINATE_USER_ID);
+			otherUser.setRole(Role.ROLE_USER);
+			when(userRepository.findById(SUBORDINATE_USER_ID)).thenReturn(Optional.of(otherUser));
 
+			UserChangeRequest request = buildUserChangeRequest();
+
+			assertThatThrownBy(() -> sut.updateUser(SUBORDINATE_USER_ID, request))
+					.isInstanceOf(AccessDeniedException.class)
+					.hasMessage("Nur Admins dürfen andere User bearbeiten.");
+		}
 	}
 
 	@Test
 	void updateCurrentUser_shouldUpdateCurrentUser() {
+		try (MockedStatic<SecurityUtil> ignored = setupSecurityAndUserContext(USER_ID, Role.ROLE_USER)) {
+			UserChangeRequest request = buildUserChangeRequest();
 
+			sut.updateUser(USER_ID, request);
+
+			verify(userRepository).save(userCaptor.capture());
+			verify(passwordEncoder).encode(PASSWORD);
+			TimeUserModel savedUser = userCaptor.getValue();
+			assertThat(savedUser.getUsername()).isEqualTo(request.getUsername());
+			assertThat(savedUser.getEmail()).isEqualTo(request.getEmail());
+			assertThat(savedUser.getRole()).isEqualTo(request.getRole());
+		}
 	}
 
+	// --- PRIVATE HELPER METHODS ---
+
+	private TimeUserModel verifyCreateSavedUser(UserCreateRequest request) {
+		verify(userRepository).save(userCaptor.capture());
+		verify(passwordEncoder).encode(PASSWORD);
+		TimeUserModel savedUser = userCaptor.getValue();
+		assertThat(savedUser.getUsername()).isEqualTo(request.getUsername());
+		assertThat(savedUser.getEmail()).isEqualTo(request.getEmail());
+		assertThat(savedUser.getRole()).isEqualTo(Role.ROLE_USER);
+		return savedUser;
+	}
+
+	private UserCreateRequest buildUserCreateRequest() {
+		return UserCreateRequest.builder()
+				.username(USERNAME)
+				.email(EMAIL)
+				.password(PASSWORD)
+				.role(null)
+				.enabled(true)
+				.build();
+	}
+
+	private UserChangeRequest buildUserChangeRequest() {
+		return UserChangeRequest.builder()
+				.username(USERNAME)
+				.email(EMAIL)
+				.password(PASSWORD)
+				.role(Role.ROLE_USER)
+				.enabled(true)
+				.build();
+	}
+
+	private MockedStatic<SecurityUtil> setupSecurityAndUserContext(Long userId, Role role) {
+		MockedStatic<SecurityUtil> ignored = mockStatic(SecurityUtil.class);
+		ignored.when(SecurityUtil::currentUser).thenReturn(principal);
+
+		when(principal.getId()).thenReturn(userId);
+
+		currentUser.setId(userId);
+		currentUser.setRole(role);
+
+		when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+		return ignored;
+	}
 }
