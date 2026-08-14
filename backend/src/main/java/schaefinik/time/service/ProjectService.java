@@ -7,12 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import schaefinik.time.enums.CurrencyCode;
 import schaefinik.time.enums.Role;
 import schaefinik.time.exception.ResourceNotFoundException;
+import schaefinik.time.mapper.DataMapper;
 import schaefinik.time.model.ProjectModel;
 import schaefinik.time.model.TimeUserModel;
 import schaefinik.time.repository.ProjectRepository;
 import schaefinik.time.request.project.ProjectChangeRequest;
 import schaefinik.time.request.project.ProjectCreateRequest;
-import schaefinik.time.response.DataMapper;
 import schaefinik.time.response.project.ProjectDTO;
 
 import java.math.BigDecimal;

@@ -23,8 +23,10 @@ public class UserReportController {
 	private final TimeEntryService timeEntryService;
 
 	@GetMapping()
-	public ResponseEntity<List<TimeEntryDTO>> getUserMonthlyReport(
+	public ResponseEntity<List<TimeEntryDTO>> getCurrentUserTimeEntriesForMonth(
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
-		return ResponseEntity.ok(timeEntryService.getUserMonthlyReport(month));
+		List<TimeEntryDTO> report = timeEntryService.getCurrentUserTimeEntriesForMonth(month);
+		return ResponseEntity.ok(report);
 	}
+
 }
