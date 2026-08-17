@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { fetchUsersApi, createUserApi, updateUserApi, deleteUserApi } from '@/api/admin/users'
-import { fetchSubordinatesApi, createEmployeeApi, updateEmployeeApi } from '@/api/manager/users'
-import { fetchCurrentUserApi } from '@/api/user/users'
+import {defineStore} from 'pinia'
+import {ref} from 'vue'
+import {createUserApi, deleteUserApi, fetchUsersApi, updateUserApi} from '@/api/admin/users'
+import {createEmployeeApi, fetchSubordinatesApi, updateEmployeeApi} from '@/api/manager/users'
+import {fetchCurrentUserApi} from '@/api/user/users'
 
 export const useUserStore = defineStore('user', () => {
     // --- State ---
@@ -13,6 +13,10 @@ export const useUserStore = defineStore('user', () => {
     const error = ref(null)
 
     // --- Actions ---
+
+    const clearCurrentUser = () => {
+        currentUser.value = null;
+    }
 
     const loadCurrentUser = async () => {
         isLoading.value = true
@@ -26,8 +30,7 @@ export const useUserStore = defineStore('user', () => {
         } catch (err) {
             error.value = err.response?.data?.message || 'Fehler beim Laden der Benutzerdaten.'
             console.log("error trying to call current User" + error.value)
-
-          } finally {
+        } finally {
             isLoading.value = false
         }
     }
@@ -62,8 +65,8 @@ export const useUserStore = defineStore('user', () => {
     const addUser = async (userData) => {
         try {
             await createUserApi(userData)
-            loadAllUsers() // Refresh the list of users after adding a new one
-            return { success: true }
+            await loadAllUsers() // Refresh the list of users after adding a new one
+            return {success: true}
         } catch (err) {
             return {
                 success: false,
@@ -76,8 +79,8 @@ export const useUserStore = defineStore('user', () => {
     const addEmployee = async (employeeData) => {
         try {
             await createEmployeeApi(employeeData)
-            loadSubordinates() // Refresh the list of subordinates after adding a new one
-            return { success: true }
+            await loadMyEmployees() // Refresh the list of subordinates after adding a new one
+            return {success: true}
         } catch (err) {
             return {
                 success: false,
@@ -90,8 +93,8 @@ export const useUserStore = defineStore('user', () => {
     const updateUser = async (userId, updatedData) => {
         try {
             await updateUserApi(userId, updatedData)
-            loadSubordinates() // Refresh the list of subordinates after updating
-            return { success: true }
+            await loadMyEmployees() // Refresh the list of subordinates after updating
+            return {success: true}
         } catch (err) {
             return {
                 success: false,
@@ -102,10 +105,10 @@ export const useUserStore = defineStore('user', () => {
     }
 
     const updateEmployee = async (userId, updatedData) => {
-     try {
+        try {
             await updateEmployeeApi(userId, updatedData)
-            loadSubordinates() // Refresh the list of subordinates after updating
-            return { success: true }
+            await loadMyEmployees() // Refresh the list of subordinates after updating
+            return {success: true}
         } catch (err) {
             return {
                 success: false,
@@ -118,8 +121,8 @@ export const useUserStore = defineStore('user', () => {
     const deleteUser = async (userId) => {
         try {
             await deleteUserApi(userId)
-            loadAllUsers() // Refresh the list of users after deleting
-            return { success: true }
+            await loadAllUsers() // Refresh the list of users after deleting
+            return {success: true}
         } catch (err) {
             return {
                 success: false,
@@ -127,20 +130,21 @@ export const useUserStore = defineStore('user', () => {
             }
         }
     }
-    
+
     return {
-      currentUser,
-      allUsers,
-      subordinates,
-      isLoading,
-      error,
-      loadCurrentUser,
-      loadAllUsers,
-      loadMyEmployees,
-      addUser,
-      addEmployee,
-      updateUser,
-      updateEmployee,
-      deleteUser
+        currentUser,
+        allUsers,
+        subordinates,
+        isLoading,
+        error,
+        clearCurrentUser,
+        loadCurrentUser,
+        loadAllUsers,
+        loadMyEmployees,
+        addUser,
+        addEmployee,
+        updateUser,
+        updateEmployee,
+        deleteUser
     }
-  })
+})

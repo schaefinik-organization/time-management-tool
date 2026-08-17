@@ -6,5 +6,6 @@
   "sonarlint.connectedMode.project": {
     "connectionId": "https-sonar-schaefinik-xyz",
     "projectKey": "time-management-tool"
-  }
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
 }

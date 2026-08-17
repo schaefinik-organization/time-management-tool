@@ -8,14 +8,15 @@ import schaefinik.time.enums.Role;
 import schaefinik.time.exception.InvalidTimeRangeException;
 import schaefinik.time.exception.OverlappingTimeException;
 import schaefinik.time.exception.ResourceNotFoundException;
+import schaefinik.time.mapper.DataMapper;
+import schaefinik.time.mapper.TeamReportMapper;
 import schaefinik.time.model.ProjectModel;
 import schaefinik.time.model.TimeEntryModel;
 import schaefinik.time.model.TimeUserModel;
 import schaefinik.time.repository.TimeEntryRepository;
 import schaefinik.time.request.TimeEntryRequest;
-import schaefinik.time.response.DataMapper;
 import schaefinik.time.response.entry.TimeEntryDTO;
-import schaefinik.time.response.project.UserProjectHoursDto;
+import schaefinik.time.response.manager.TeamMemberReportDTO;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ public class TimeEntryService {
 	private final ProjectService projectService;
 	private final UserService userService;
 	private final DataMapper dataMapper;
+	private final TeamReportMapper teamReportMapper;
 
 	@Transactional(readOnly = true)
 	public List<TimeEntryDTO> getMyTimeEntries() {
@@ -44,13 +46,9 @@ public class TimeEntryService {
 	@Transactional
 	public TimeEntryDTO createEntry(TimeEntryRequest request) {
 		TimeUserModel currentUser = userService.getCurrentUser();
-
 		ProjectModel project = projectService.getProject(request.getProjectId());
-
 		verifyUserCanBookOnProject(currentUser, project);
-
 		validateTimeRange(currentUser.getId(), request.getStartTime(), request.getEndTime(), null);
-
 		TimeEntryModel entry = TimeEntryModel.builder()
 				.user(currentUser)
 				.project(project)
@@ -66,16 +64,12 @@ public class TimeEntryService {
 	public TimeEntryDTO updateEntry(Long id, TimeEntryRequest request) {
 		TimeEntryModel entry = getTimeEntry(id);
 		TimeUserModel currentUser = userService.getCurrentUser();
-
 		if (!entry.getUser().getId().equals(currentUser.getId())) {
 			throw new AccessDeniedException("Du darfst nur deine eigenen Zeiten bearbeiten.");
 		}
-
 		ProjectModel project = projectService.getProject(request.getProjectId());
 		verifyUserCanBookOnProject(currentUser, project);
-
 		validateTimeRange(currentUser.getId(), request.getStartTime(), request.getEndTime(), entry.getId());
-
 		entry.setProject(project);
 		entry.setStartTime(request.getStartTime());
 		entry.setEndTime(request.getEndTime());
@@ -87,7 +81,6 @@ public class TimeEntryService {
 	@Transactional
 	public void deleteEntry(Long id) {
 		TimeEntryModel entry = getTimeEntry(id);
-
 		if (!entry.getUser().getId().equals(userService.getCurrentUser().getId())) {
 			throw new AccessDeniedException("Du darfst nur deine eigenen Zeiten löschen.");
 		}
@@ -95,21 +88,28 @@ public class TimeEntryService {
 		timeEntryRepository.delete(entry);
 	}
 
+	//For Booking View
 	@Transactional(readOnly = true)
-	public List<TimeEntryDTO> getUserMonthlyReport(YearMonth month) {
+	public TeamMemberReportDTO getCurrentUserTeamReport(YearMonth month) {
 		TimeUserModel currentUser = userService.getCurrentUser();
-
+		if (month == null) {
+			month = YearMonth.now(Clock.systemDefaultZone());
+		}
 		LocalDateTime start = month.atDay(1).atStartOfDay();
 		LocalDateTime end = month.atEndOfMonth().atTime(23, 59, 59);
-
-		List<TimeEntryModel> entries = timeEntryRepository.findByUserIdAndStartTimeBetweenOrderByStartTimeDesc(
-				currentUser.getId(), start, end);
-
-		return entries.stream().map(this::mapToDTO).toList();
+		var result = timeEntryRepository.
+				getUserTeamReport(
+						currentUser.getId(),
+						start,
+						end);
+		if (result.isEmpty()) {
+			return null;
+		}
+		return teamReportMapper.mapToTeamMemberReports(result).getFirst();
 	}
 
 	@Transactional(readOnly = true)
-	public List<UserProjectHoursDto> getTeamReportForManager(YearMonth month) {
+	public List<TeamMemberReportDTO> getCurrentManagerTeamReport(YearMonth month) {
 		TimeUserModel currentManager = userService.getCurrentUser();
 		if (currentManager.getRole() == Role.ROLE_USER) {
 			throw new AccessDeniedException("Normale User haben keinen Zugriff auf Team-Reports.");
@@ -119,58 +119,14 @@ public class TimeEntryService {
 		}
 		LocalDateTime startOfMonth = month.atDay(1).atStartOfDay();
 		LocalDateTime endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
-		return timeEntryRepository.getAggregatedHoursByManager(
-				currentManager.getId(),
-				startOfMonth,
-				endOfMonth
+
+		return teamReportMapper.mapToTeamMemberReports(
+				timeEntryRepository.
+						getFlatManagerReport(
+								currentManager.getId(),
+								startOfMonth,
+								endOfMonth)
 		);
-	}
-
-	@Transactional(readOnly = true)
-	public List<TimeEntryDTO> getTimeEntryForProject(Long projectId, YearMonth month) {
-		TimeUserModel currentUser = userService.getCurrentUser();
-		ProjectModel project = projectService.getProject(projectId);
-
-		if (!project.getManager().getId().equals(currentUser.getId()) && currentUser.getRole() != Role.ROLE_ADMIN) {
-			throw new AccessDeniedException("Nur der Manager des Projekts kann diesen Report abrufen.");
-		}
-
-		List<TimeEntryModel> entries;
-
-		if (month != null) {
-			LocalDateTime startOfMonth = month.atDay(1).atStartOfDay();
-			LocalDateTime endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
-
-			entries = timeEntryRepository.findByProjectIdAndStartTimeBetweenOrderByStartTimeDesc(
-					projectId, startOfMonth, endOfMonth);
-		} else {
-			entries = timeEntryRepository.findByProjectIdOrderByStartTimeDesc(projectId);
-		}
-
-		return entries.stream()
-				.map(this::mapToDTO)
-				.toList();
-	}
-
-	@Transactional(readOnly = true)
-	public List<UserProjectHoursDto> getAggregatedReportForProject(Long projectId, YearMonth month) {
-		TimeUserModel currentUser = userService.getCurrentUser();
-		ProjectModel project = projectService.getProject(projectId);
-
-		if (!project.getManager().getId()
-				.equals(currentUser.getId())
-				&& currentUser.getRole()
-				!= Role.ROLE_ADMIN
-		) {
-			throw new AccessDeniedException("MANAGER_ACCESS_DENIED");
-		}
-		if (month == null) {
-			month = YearMonth.now(Clock.systemDefaultZone());
-		}
-		LocalDateTime startOfMonth = month.atDay(1).atStartOfDay();
-		LocalDateTime endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
-
-		return timeEntryRepository.getAggregatedHoursPerUser(projectId, startOfMonth, endOfMonth);
 	}
 
 	protected TimeEntryModel getTimeEntry(Long id) {
@@ -183,7 +139,10 @@ public class TimeEntryService {
 			throw new IllegalStateException("Das Projekt ist archiviert. Buchungen sind nicht möglich.");
 		}
 
-		boolean isManager = project.getManager().getId().equals(user.getId());
+		boolean isManager = false;
+		if (project.getManager() != null) {
+			isManager = project.getManager().getId().equals(user.getId());
+		}
 		boolean isAssigned = project.getAssignedUsers().stream()
 				.anyMatch(u -> u.getId().equals(user.getId()));
 

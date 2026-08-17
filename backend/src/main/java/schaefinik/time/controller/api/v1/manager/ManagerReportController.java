@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import schaefinik.time.response.project.UserProjectHoursDto;
+import schaefinik.time.response.manager.TeamMemberReportDTO;
 import schaefinik.time.service.TimeEntryService;
 
 import java.time.YearMonth;
@@ -22,11 +22,11 @@ public class ManagerReportController {
 
 	private final TimeEntryService timeEntryService;
 
-	@GetMapping("/api/v1/team/reports")
+	@GetMapping()
 	@PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
-	public ResponseEntity<List<UserProjectHoursDto>> getTeamReport(
+	public ResponseEntity<List<TeamMemberReportDTO>> getManagerTimeEntriesForMonth(
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
-		List<UserProjectHoursDto> report = timeEntryService.getTeamReportForManager(month);
+		List<TeamMemberReportDTO> report = timeEntryService.getCurrentManagerTeamReport(month);
 		return ResponseEntity.ok(report);
 	}
 }

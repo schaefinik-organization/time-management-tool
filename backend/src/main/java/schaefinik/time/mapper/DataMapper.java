@@ -1,4 +1,4 @@
-package schaefinik.time.response;
+package schaefinik.time.mapper;
 
 import org.mapstruct.Mapper;
 import schaefinik.time.model.ProjectModel;

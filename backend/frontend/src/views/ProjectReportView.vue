@@ -98,7 +98,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
-import { exportProjectExcelApi,exportProjectPdfApi, fetchProjectHoursReportApi } from '@/api/projects'
 
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 import { Bar } from 'vue-chartjs'

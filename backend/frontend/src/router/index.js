@@ -8,6 +8,8 @@ import ProjectReport from '@/views/ProjectReportView.vue'
 import AdminUsers from '@/views/admin/AdminUsersView.vue'
 import ManagerUsers from '@/views/manager/ManagerUsersView.vue'
 import ProjectDashboard from '@/views/ProjectDashboard.vue'
+import ManagerReport from '@/views/manager/ManagerReportView.vue'
+import UserReport from '@/views/user/UserReportView.vue'
 
 const routes = [
 
@@ -31,7 +33,16 @@ const routes = [
             allowedRoles: ['ROLE_USER', 'ROLE_MANAGER', 'ROLE_ADMIN']
         }
     },
-     {
+    {
+        name: 'user-report',
+        path: '/user/report',
+        component: UserReport,
+        meta: {
+            requiresAuth: true,
+            allowedRoles: ['ROLE_USER', 'ROLE_MANAGER', 'ROLE_ADMIN']
+        }
+    },
+    {
         name: 'projects',
         path: '/projects',
         component: ProjectDashboard,
@@ -42,17 +53,26 @@ const routes = [
     },
     {
         name: 'reports',
-        path: '/reports/:id?',
+        path: '/projects/reports/:id?',
         component: ProjectReport,
         meta: {
             requiresAuth: true,
             allowedRoles: ['ROLE_MANAGER', 'ROLE_ADMIN']
         }
     },
-      {
+    {
         name: 'manager-users',
         path: '/manager/users',
         component: ManagerUsers,
+        meta: {
+            requiresAuth: true,
+            allowedRoles: ['ROLE_MANAGER', 'ROLE_ADMIN']
+        }
+    },
+    {
+        name: 'manager-report',
+        path: '/manager/report',
+        component: ManagerReport,
         meta: {
             requiresAuth: true,
             allowedRoles: ['ROLE_MANAGER', 'ROLE_ADMIN']

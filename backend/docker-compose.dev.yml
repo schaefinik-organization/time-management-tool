@@ -12,7 +12,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=dev_user
       - SPRING_DATASOURCE_PASSWORD=dev_secret_password
     networks:
-      - proxy-network # Geändert!
+      - proxy-network
       - dev-internal
     depends_on:
       - dev_db

@@ -26,7 +26,7 @@ public class ManagerUserController {
 	}
 
 	@PostMapping(produces = "application/json")
-	public ResponseEntity<Boolean> createEmployee(@Valid @RequestBody UserCreateRequest request) {
+	public ResponseEntity<TimeUserDTO> createEmployee(@Valid @RequestBody UserCreateRequest request) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(userService.createEmployee(request));
 	}
 

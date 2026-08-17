@@ -6,11 +6,14 @@ import { useUserStore } from '@/stores/userStore'
 
 const authStore = useAuthStore()
 const userStore = useUserStore()
+const router = useRouter()
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 function handleLogout() {
-  authStore.logout()
+  authStore.logout();
+  userStore.clearCurrentUser();
+  router.push('/');
 }
 
 onMounted(() => {

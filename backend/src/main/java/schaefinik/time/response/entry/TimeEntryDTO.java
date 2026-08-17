@@ -16,5 +16,5 @@ public class TimeEntryDTO {
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;
 	private String description;
-	private LocalDateTime creationDate;
+	private LocalDateTime createdAt;
 }

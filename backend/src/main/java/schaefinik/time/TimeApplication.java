@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan(basePackages = "schaefinik.time")
 public class TimeApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(TimeApplication.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(TimeApplication.class, args);
+	}
 }

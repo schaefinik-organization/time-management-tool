@@ -54,8 +54,15 @@ public class SecurityConfig {
 								"/time-entries",
 								"/login",
 								"/profile",
+								"/user/**",
+								"/manager/**",
 								"/admin/**",
-								"/error")
+								"/error",
+								"/swagger-ui/**",
+								"/swagger-ui.html",
+								"/v3/api-docs/**",
+								"/swagger-resources/**",
+								"/webjars/**")
 						.permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
 						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
@@ -87,15 +94,14 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		// FIX: Hier müssen alle Domains stehen, unter denen die App aufgerufen wird
 		configuration.setAllowedOrigins(Arrays.asList(
-				"http://localhost:5173",        // Für deine lokale IDE
-				"https://dev.schaefinik.xyz",   // Deine Dev-Umgebung
-				"https://time.schaefinik.xyz"        // Für dein späteres Live-System
+				"http://localhost:5173",
+				"https://dev.schaefinik.xyz",
+				"https://time.schaefinik.xyz"
 		));
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-		configuration.setAllowCredentials(true); // Wichtig für Cookies/Auth-Header
+		configuration.setAllowCredentials(true);
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);

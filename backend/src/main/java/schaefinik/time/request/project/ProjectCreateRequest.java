@@ -24,5 +24,5 @@ public class ProjectCreateRequest {
 	@NotNull(message = "Die Währung muss angegeben werden.")
 	private CurrencyCode currency;
 
-	private Set<Long> userIds;
+	private Set<Long> assignedUserIds;
 }

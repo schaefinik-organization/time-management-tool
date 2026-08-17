@@ -18,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
+
 	private final UserService userService;
 
 	@GetMapping(produces = "application/json")

@@ -36,6 +36,9 @@ public class TimeEntryModel {
 	@Column(length = 500)
 	private String description;
 
+	@Builder.Default
+	private boolean billable = true;
+
 	@Column(nullable = false, updatable = false)
 	@Builder.Default
 	private LocalDateTime createdAt = LocalDateTime.now(Clock.systemDefaultZone());

@@ -7,12 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import schaefinik.time.enums.CurrencyCode;
 import schaefinik.time.enums.Role;
 import schaefinik.time.exception.ResourceNotFoundException;
+import schaefinik.time.mapper.DataMapper;
 import schaefinik.time.model.ProjectModel;
 import schaefinik.time.model.TimeUserModel;
 import schaefinik.time.repository.ProjectRepository;
 import schaefinik.time.request.project.ProjectChangeRequest;
 import schaefinik.time.request.project.ProjectCreateRequest;
-import schaefinik.time.response.DataMapper;
 import schaefinik.time.response.project.ProjectDTO;
 
 import java.math.BigDecimal;
@@ -30,10 +30,19 @@ public class ProjectService {
 	private final DataMapper dataMapper;
 
 	@Transactional(readOnly = true)
+	public List<ProjectDTO> findAllProjects() {
+		TimeUserModel currentUser = userService.getCurrentUser();
+		if (currentUser.getRole() != Role.ROLE_ADMIN) {
+			throw new AccessDeniedException("Access denied");
+		}
+		return projectRepository.findAll().stream()
+				.map(dataMapper::toProjectDto).toList();
+	}
+
+	@Transactional(readOnly = true)
 	public List<ProjectDTO> findAllAssignedToCurrentUser() {
 		TimeUserModel currentUser = userService.getCurrentUser();
 		List<ProjectModel> assignedProjects = projectRepository.findByAssignedUsersContainingAndActiveIsTrue(currentUser);
-		List<ProjectDTO> managedProjectsDTO = this.findAllManagedByCurrentUser();
 		List<ProjectDTO> assignedProjectsDTO =
 				Stream.of(assignedProjects)
 						.flatMap(Collection::stream)
@@ -41,7 +50,7 @@ public class ProjectService {
 						.toList();
 		return Stream.of(
 						assignedProjectsDTO,
-						managedProjectsDTO)
+						this.findAllManagedByCurrentUser())
 				.flatMap(Collection::stream)
 				.toList();
 	}
@@ -80,8 +89,8 @@ public class ProjectService {
 				.currency(request.getCurrency() != null ? request.getCurrency() : CurrencyCode.EUR)
 				.build();
 
-		if (request.getUserIds() != null) {
-			project.setAssignedUsers(userService.findAllByIds(request.getUserIds()));
+		if (request.getAssignedUserIds() != null) {
+			project.setAssignedUsers(userService.findAllByIds(request.getAssignedUserIds()));
 		}
 
 		return mapToDTO(projectRepository.save(project));

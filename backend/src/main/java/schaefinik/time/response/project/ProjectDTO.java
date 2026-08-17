@@ -17,7 +17,7 @@ public class ProjectDTO {
 	private BigDecimal internalHourlyRate;
 	private CurrencyCode currency;
 	private boolean active;
-	private LocalDateTime creationDate;
+	private LocalDateTime createdAt;
 
 	// Nur flache User-Referenzen!
 	private UserSummaryDTO manager;
