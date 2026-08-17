@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import schaefinik.time.enums.Role;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,4 +25,5 @@ public class UserChangeRequest {
 	String password;
 	Role role;
 	Boolean enabled;
+	List<Long> subordinateIds;
 }

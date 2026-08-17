@@ -30,10 +30,19 @@ public class ProjectService {
 	private final DataMapper dataMapper;
 
 	@Transactional(readOnly = true)
+	public List<ProjectDTO> findAllProjects() {
+		TimeUserModel currentUser = userService.getCurrentUser();
+		if (currentUser.getRole() != Role.ROLE_ADMIN) {
+			throw new AccessDeniedException("Access denied");
+		}
+		return projectRepository.findAll().stream()
+				.map(dataMapper::toProjectDto).toList();
+	}
+
+	@Transactional(readOnly = true)
 	public List<ProjectDTO> findAllAssignedToCurrentUser() {
 		TimeUserModel currentUser = userService.getCurrentUser();
 		List<ProjectModel> assignedProjects = projectRepository.findByAssignedUsersContainingAndActiveIsTrue(currentUser);
-		List<ProjectDTO> managedProjectsDTO = this.findAllManagedByCurrentUser();
 		List<ProjectDTO> assignedProjectsDTO =
 				Stream.of(assignedProjects)
 						.flatMap(Collection::stream)
@@ -41,7 +50,7 @@ public class ProjectService {
 						.toList();
 		return Stream.of(
 						assignedProjectsDTO,
-						managedProjectsDTO)
+						this.findAllManagedByCurrentUser())
 				.flatMap(Collection::stream)
 				.toList();
 	}
@@ -80,8 +89,8 @@ public class ProjectService {
 				.currency(request.getCurrency() != null ? request.getCurrency() : CurrencyCode.EUR)
 				.build();
 
-		if (request.getUserIds() != null) {
-			project.setAssignedUsers(userService.findAllByIds(request.getUserIds()));
+		if (request.getAssignedUserIds() != null) {
+			project.setAssignedUsers(userService.findAllByIds(request.getAssignedUserIds()));
 		}
 
 		return mapToDTO(projectRepository.save(project));

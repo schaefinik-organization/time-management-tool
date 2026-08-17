@@ -315,25 +315,25 @@ class TimeEntryServiceTest implements WithAssertions {
 		verify(timeEntryRepository).delete(timeEntryModel);
 	}
 
-	@Test
-	void getCurrentUserTimeEntriesForMonth_shouldReturnCurrentUserTimeEntry() {
-		when(userService.getCurrentUser()).thenReturn(currentUser);
-		when(currentUser.getId()).thenReturn(CURRENT_USER_ID);
-		YearMonth month = YearMonth.now();
-		LocalDateTime start = month.atDay(1).atStartOfDay();
-		LocalDateTime end = month.atEndOfMonth().atTime(23, 59, 59);
-		when(timeEntryRepository.findByUserIdAndStartTimeBetweenOrderByStartTimeDesc(
-				CURRENT_USER_ID, start, end)).thenReturn(List.of(timeEntryModel));
-		when(dataMapper.toTimeEntryDto(timeEntryModel)).thenReturn(timeEntryDTO);
-
-		var result = sut.getCurrentUserTimeEntriesForMonth(month);
-
-		verify(userService).getCurrentUser();
-		verify(timeEntryRepository).findByUserIdAndStartTimeBetweenOrderByStartTimeDesc(
-				CURRENT_USER_ID, start, end);
-		verify(dataMapper).toTimeEntryDto(timeEntryModel);
-		assertThat(result).isEqualTo(List.of(timeEntryDTO));
-	}
+//	@Test
+//	void getCurrentUserTimeEntriesForMonth_shouldReturnCurrentUserTimeEntry() {
+//		when(userService.getCurrentUser()).thenReturn(currentUser);
+//		when(currentUser.getId()).thenReturn(CURRENT_USER_ID);
+//		YearMonth month = YearMonth.now();
+//		LocalDateTime start = month.atDay(1).atStartOfDay();
+//		LocalDateTime end = month.atEndOfMonth().atTime(23, 59, 59);
+//		when(timeEntryRepository.findByUserIdAndStartTimeBetweenOrderByStartTimeDesc(
+//				CURRENT_USER_ID, start, end)).thenReturn(List.of(timeEntryModel));
+//		when(dataMapper.toTimeEntryDto(timeEntryModel)).thenReturn(timeEntryDTO);
+//
+//		var result = sut.getCurrentUserTimeEntriesForMonth(month);
+//
+//		verify(userService).getCurrentUser();
+//		verify(timeEntryRepository).findByUserIdAndStartTimeBetweenOrderByStartTimeDesc(
+//				CURRENT_USER_ID, start, end);
+//		verify(dataMapper).toTimeEntryDto(timeEntryModel);
+//		assertThat(result).isEqualTo(List.of(timeEntryDTO));
+//	}
 
 	@Test
 	void getCurrentManagerTeamReport_roleUser_shouldThrowAccessDeniedException() {

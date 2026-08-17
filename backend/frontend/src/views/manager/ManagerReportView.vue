@@ -1,0 +1,47 @@
+<template>
+  <div class="report-container">
+    <div v-if="isLoading" class="loading-state">Lade Auswertungen...</div>
+    <div v-else-if="error" class="error-box">{{ error }}</div>
+    <div v-else-if="hasLoadedData" class="dashboard-grid">
+      <div v-for="report in reports">
+        <UserReportCard :userData="report"/>
+      </div>
+    </div>
+    <div v-else>
+      Keine Daten verfügbar!
+    </div>
+  </div>
+</template>
+
+<script setup>
+import UserReportCard from '@/components/report/UserReportCard.vue'
+import { ref, computed, onMounted } from 'vue'
+import { fetchReport } from '@/api/manager/reports'
+
+const selectedMonth = ref('')
+const reports = ref([])
+const isLoading = ref(false)
+const error = ref(null)
+
+onMounted(() => {
+  loadReportsData();
+})
+
+const hasLoadedData = computed(() => {
+  return reports.value.length > 0;
+  })
+
+const loadReportsData = async () => {
+  isLoading.value = true
+  error.value = null
+
+  try {
+    const response = await fetchReport(selectedMonth.value || null)
+    reports.value = response.data
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Fehler beim Laden des Reports'
+  } finally {
+    isLoading.value = false
+  }
+}
+</script>

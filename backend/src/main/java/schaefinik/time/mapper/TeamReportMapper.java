@@ -12,7 +12,6 @@ import java.util.Map;
 
 @Component
 public class TeamReportMapper {
-
 	public List<TeamMemberReportDTO> mapToTeamMemberReports(List<FlatManagerReportDTO> flatData) {
 		if (flatData == null || flatData.isEmpty()) {
 			return new ArrayList<>();
@@ -26,11 +25,9 @@ public class TeamReportMapper {
 					id -> new TeamMemberReportDTO(id, row.getUsername())
 			);
 
-			// Gesamtstunden aggregieren
 			userReport.setTotalHoursOverall(userReport.getTotalHoursOverall() + row.getTotalHours());
 			userReport.setBillableHoursOverall(userReport.getBillableHoursOverall() + row.getBillableHours());
 
-			// Projekt mappen
 			TeamMemberProjectSummaryDTO projectSummary = new TeamMemberProjectSummaryDTO(
 					row.getProjectId(),
 					row.getProjectName(),
@@ -38,7 +35,6 @@ public class TeamReportMapper {
 					row.getBillableHours(),
 					row.getEntryCount()
 			);
-
 			userReport.getProjects().add(projectSummary);
 		}
 

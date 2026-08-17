@@ -31,6 +31,14 @@ public class ProjectController {
 		return ResponseEntity.ok(projectService.getProjectData(id));
 	}
 
+	@GetMapping("/all")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+	public ResponseEntity<List<ProjectDTO>> getAllProjects() {
+		List<ProjectDTO> projects = projectService.findAllProjects();
+		return ResponseEntity.ok(projects);
+	}
+
+
 	@GetMapping("/managed")
 	@PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
 	public ResponseEntity<List<ProjectDTO>> getManagedProjects() {

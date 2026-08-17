@@ -8,11 +8,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import schaefinik.time.response.entry.TimeEntryDTO;
+import schaefinik.time.response.manager.TeamMemberReportDTO;
 import schaefinik.time.service.TimeEntryService;
 
 import java.time.YearMonth;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/user/report")
@@ -23,9 +22,9 @@ public class UserReportController {
 	private final TimeEntryService timeEntryService;
 
 	@GetMapping()
-	public ResponseEntity<List<TimeEntryDTO>> getCurrentUserTimeEntriesForMonth(
+	public ResponseEntity<TeamMemberReportDTO> getCurrentUserTimeEntriesForMonth(
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
-		List<TimeEntryDTO> report = timeEntryService.getCurrentUserTimeEntriesForMonth(month);
+		TeamMemberReportDTO report = timeEntryService.getCurrentUserTeamReport(month);
 		return ResponseEntity.ok(report);
 	}
 

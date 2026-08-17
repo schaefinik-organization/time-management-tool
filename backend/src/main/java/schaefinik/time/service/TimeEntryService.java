@@ -90,14 +90,22 @@ public class TimeEntryService {
 
 	//For Booking View
 	@Transactional(readOnly = true)
-	public List<TimeEntryDTO> getCurrentUserTimeEntriesForMonth(YearMonth month) {
+	public TeamMemberReportDTO getCurrentUserTeamReport(YearMonth month) {
 		TimeUserModel currentUser = userService.getCurrentUser();
+		if (month == null) {
+			month = YearMonth.now(Clock.systemDefaultZone());
+		}
 		LocalDateTime start = month.atDay(1).atStartOfDay();
 		LocalDateTime end = month.atEndOfMonth().atTime(23, 59, 59);
-		List<TimeEntryModel> entries = timeEntryRepository.findByUserIdAndStartTimeBetweenOrderByStartTimeDesc(
-				currentUser.getId(), start, end);
-
-		return entries.stream().map(this::mapToDTO).toList();
+		var result = timeEntryRepository.
+				getUserTeamReport(
+						currentUser.getId(),
+						start,
+						end);
+		if (result.isEmpty()) {
+			return null;
+		}
+		return teamReportMapper.mapToTeamMemberReports(result).getFirst();
 	}
 
 	@Transactional(readOnly = true)

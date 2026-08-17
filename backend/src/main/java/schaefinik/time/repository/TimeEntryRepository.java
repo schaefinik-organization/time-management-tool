@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import schaefinik.time.model.TimeEntryModel;
 import schaefinik.time.response.manager.FlatManagerReportDTO;
-import schaefinik.time.response.project.ProjectUserTimeEntryDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,23 +32,6 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntryModel, Long>
 			LocalDateTime end
 	);
 
-	@Query("SELECT new schaefinik.time.response.project.ProjectUserTimeEntryDTO(" +
-			"u.id, u.username, " +
-			"SUM((EXTRACT(EPOCH FROM t.endTime) - EXTRACT(EPOCH FROM t.startTime)) / 3600.0), " +
-			"SUM(CASE WHEN t.isBillable = true THEN (EXTRACT(EPOCH FROM t.endTime) - EXTRACT(EPOCH FROM t.startTime)) / 3600.0 ELSE 0.0 END), " +
-			"COUNT(t.id)) " +
-			"FROM TimeEntryModel t JOIN t.user u " +
-			"WHERE t.project.id = :projectId " +
-			"AND (cast(:start as timestamp) IS NULL OR t.startTime >= :start) " +
-			"AND (cast(:end as timestamp) IS NULL OR t.startTime <= :end) " +
-			"GROUP BY u.id, u.username " +
-			"ORDER BY u.username ASC")
-	List<ProjectUserTimeEntryDTO> getAggregatedHoursPerUserForProject(
-			@Param("projectId") Long projectId,
-			@Param("start") LocalDateTime start,
-			@Param("end") LocalDateTime end
-	);
-
 	List<TimeEntryModel> findByUserIdAndStartTimeBetweenOrderByStartTimeDesc(
 			Long userId,
 			LocalDateTime start,
@@ -59,7 +41,7 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntryModel, Long>
 	@Query("SELECT new schaefinik.time.response.manager.FlatManagerReportDTO(" +
 			"u.id, u.username, p.id, p.name, " +
 			"SUM((EXTRACT(EPOCH FROM t.endTime) - EXTRACT(EPOCH FROM t.startTime)) / 3600.0), " +
-			"SUM(CASE WHEN t.isBillable = true THEN (EXTRACT(EPOCH FROM t.endTime) - EXTRACT(EPOCH FROM t.startTime)) / 3600.0 ELSE 0.0 END), " +
+			"SUM(CASE WHEN t.billable = true THEN (EXTRACT(EPOCH FROM t.endTime) - EXTRACT(EPOCH FROM t.startTime)) / 3600.0 ELSE 0.0 END), " +
 			"COUNT(t.id)) " +
 			"FROM TimeEntryModel t " +
 			"JOIN t.user u " +
@@ -74,4 +56,24 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntryModel, Long>
 			@Param("start") LocalDateTime start,
 			@Param("end") LocalDateTime end
 	);
+
+	@Query("SELECT new schaefinik.time.response.manager.FlatManagerReportDTO(" +
+			"u.id, u.username, p.id, p.name, " +
+			"SUM((EXTRACT(EPOCH FROM t.endTime) - EXTRACT(EPOCH FROM t.startTime)) / 3600.0), " +
+			"SUM(CASE WHEN t.billable = true THEN (EXTRACT(EPOCH FROM t.endTime) - EXTRACT(EPOCH FROM t.startTime)) / 3600.0 ELSE 0.0 END), " +
+			"COUNT(t.id)) " +
+			"FROM TimeEntryModel t " +
+			"JOIN t.user u " +
+			"JOIN t.project p " +
+			"WHERE u.id = :userId " +
+			"AND (cast(:start as timestamp) IS NULL OR t.startTime >= :start) " +
+			"AND (cast(:end as timestamp) IS NULL OR t.startTime <= :end) " +
+			"GROUP BY u.id, u.username, p.id, p.name " +
+			"ORDER BY p.name ASC")
+	List<FlatManagerReportDTO> getUserTeamReport(
+			@Param("userId") Long userId,
+			@Param("start") LocalDateTime start,
+			@Param("end") LocalDateTime end
+	);
+
 }

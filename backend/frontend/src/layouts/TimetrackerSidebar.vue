@@ -12,12 +12,15 @@ const anonymousRouterLinks = [
 const userRouterLinks = [
     { name: 'Home', path: '/' },
   { name: 'Zeiterfassung', path: '/tracker' },
+   { name: 'Report', path: '/user/report' },
 ]
 
 const managerRouterLinks = [
   { name: 'Team-Benutzer', path: '/manager/users' },
+  { name: 'Reports', path: '/manager/report' },
   { name: 'Projektverwaltung', path: '/projects' },
   { name: 'Berichte', path: '/reports' }
+
 ]
 
 const adminRouterLinks = [
@@ -26,6 +29,9 @@ const adminRouterLinks = [
 ]
 
 const sidebarLinks = computed(() => {
+  console.log("inSidebarLinks");
+    console.log("userStore.currentUser:" + userStore.currentUser );
+  console.log("userStore.currentUser?.role:" + userStore.currentUser?.role );
   const role = userStore.currentUser?.role 
 
   if (role === 'ROLE_ADMIN') {
@@ -47,8 +53,7 @@ const sidebarLinks = computed(() => {
   <aside class="sidebar">
     <h2>TimeTracker App</h2>
     <nav class="sidebar-nav">
-    <!-- Wir iterieren einfach über die computed Liste -->
-    <RouterLink 
+    <RouterLink
       v-for="link in sidebarLinks" 
       :key="link.path" 
       :to="link.path"

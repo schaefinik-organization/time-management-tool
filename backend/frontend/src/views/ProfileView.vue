@@ -188,7 +188,7 @@ async function submitPasswordChange() {
 
 function handleLogout() {
   authStore.logout()
-  router.push({ name: 'login' })
+  router.push('/') 
 }
 
 onMounted(async () => {
